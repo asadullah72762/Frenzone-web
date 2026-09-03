@@ -24,16 +24,30 @@ export function CreatorApplicationForm() {
       acceptAgreement: false,
     },
   });
+  const [isSuccess, setIsSuccess] = useState(false);
+
   const submit = async (data: CreatorApplicationInput) => {
     setServerError(undefined);
     try {
       await creatorApplicationService.submit(data);
-    } catch {
+      setIsSuccess(true);
+    } catch (err: any) {
       setServerError(
-        "Applications cannot be submitted until the secure Frenzone API is connected.",
+        err.message || "Applications cannot be submitted at this time. Please try again.",
       );
     }
   };
+
+  if (isSuccess) {
+    return (
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-emerald-900 shadow-sm">
+        <h3 className="text-xl font-bold">Application Submitted Successfully!</h3>
+        <p className="mt-2 text-sm">
+          Your Creator Program Application has been received and is currently under review by the Frenzone team.
+        </p>
+      </div>
+    );
+  }
   return (
     <form className="grid gap-8" onSubmit={handleSubmit(submit)} noValidate>
       <FormSection title="Personal information">

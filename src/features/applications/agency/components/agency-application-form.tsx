@@ -18,16 +18,30 @@ export function AgencyApplicationForm() {
     resolver: zodResolver(agencyApplicationSchema),
     defaultValues: { acceptTerms: false, acceptAgreement: false },
   });
+  const [isSuccess, setIsSuccess] = useState(false);
+
   const submit = async (data: AgencyApplicationInput) => {
     setServerError(undefined);
     try {
       await agencyApplicationService.submit(data);
-    } catch {
+      setIsSuccess(true);
+    } catch (err: any) {
       setServerError(
-        "Applications cannot be submitted until the secure Frenzone API is connected.",
+        err.message || "Agency applications cannot be submitted at this time. Please try again.",
       );
     }
   };
+
+  if (isSuccess) {
+    return (
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-emerald-900 shadow-sm">
+        <h3 className="text-xl font-bold">Agency Application Submitted!</h3>
+        <p className="mt-2 text-sm">
+          Your Agency Application has been received and is currently under review by the Frenzone admin team.
+        </p>
+      </div>
+    );
+  }
   return (
     <form className="grid gap-8" onSubmit={handleSubmit(submit)} noValidate>
       <Section title="Agency information">

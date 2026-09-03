@@ -1,20 +1,36 @@
-import type { ApiError, ApiResponse } from "./types";
-const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+import type { ApiError } from "./types";
+
+const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  if (!baseUrl)
-    throw { status: 503, message: "The API is not configured." } satisfies ApiError;
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("frenzone_token") || localStorage.getItem("token")
+      : null;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(init?.headers as Record<string, string>),
+  };
+
   const response = await fetch(`${baseUrl}${path}`, {
     ...init,
-    credentials: "include",
-    headers: { "Content-Type": "application/json", ...init?.headers },
+    headers,
   });
-  if (!response.ok)
+
+  const responseData = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
     throw {
       status: response.status,
-      message: "Something went wrong. Please try again.",
+      message: responseData.error || responseData.message || "Something went wrong. Please try again.",
     } satisfies ApiError;
-  return ((await response.json()) as ApiResponse<T>).data;
+  }
+
+  return responseData as T;
 }
+
 export const apiClient = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body?: unknown) =>

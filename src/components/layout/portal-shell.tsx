@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import type { NavigationItem } from "@/config/navigation";
 import { Container } from "./container";
-import { LogOut, User, Building2, Sparkles, Flame, ChevronRight } from "lucide-react";
+import { LogOut, User, Building2, ChevronRight } from "lucide-react";
+import { authService } from "@/features/auth/services/auth.service";
 
 type Props = {
   product: "Creator" | "Agency";
@@ -15,6 +16,22 @@ type Props = {
 
 export function PortalShell({ product, links, children }: Props) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("frenzone_token");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
+      await authService.logout().catch(() => {});
+    } catch {
+      // Ignore network errors on client logout
+    } finally {
+      router.push("/login");
+    }
+  };
 
   return (
     <div className="bg-surface-muted min-h-screen flex flex-col">
@@ -38,13 +55,14 @@ export function PortalShell({ product, links, children }: Props) {
             >
               ← Back to Main Site
             </Link>
-            <Link
-              href="/login"
-              className="flex items-center space-x-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-bold text-text-secondary hover:text-brand hover:border-brand transition-colors"
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex items-center space-x-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-bold text-text-secondary hover:text-danger hover:border-danger transition-colors cursor-pointer"
             >
               <LogOut className="h-3.5 w-3.5" />
-              <span>Switch Workspace</span>
-            </Link>
+              <span>Log Out</span>
+            </button>
           </div>
         </Container>
       </header>
@@ -96,12 +114,12 @@ export function PortalShell({ product, links, children }: Props) {
 
             {/* Sidebar Bottom User Profile Card */}
             <div className="pt-6 border-t border-border mt-6 px-1">
-              <div className="rounded-2xl border border-border bg-surface p-3.5 shadow-sm space-y-2">
+              <div className="rounded-2xl border border-border bg-surface p-3.5 shadow-sm space-y-3">
                 <div className="flex items-center space-x-3">
                   <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-cta text-white font-extrabold text-xs shadow-sm">
                     {product === "Creator" ? <User className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
                   </div>
-                  <div className="overflow-hidden">
+                  <div className="overflow-hidden flex-1">
                     <p className="text-xs font-bold text-text-primary truncate">
                       {product === "Creator" ? "Alex Rivera" : "Nexus Talent Agency"}
                     </p>
@@ -111,12 +129,20 @@ export function PortalShell({ product, links, children }: Props) {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-1 text-[10px] font-bold text-success bg-success-soft/60 px-2.5 py-1 rounded-lg">
-                  <span className="flex items-center space-x-1">
+                <div className="flex items-center justify-between pt-1">
+                  <span className="flex items-center space-x-1 text-[10px] font-bold text-success bg-success-soft/60 px-2 py-0.5 rounded-md">
                     <span className="h-1.5 w-1.5 rounded-full bg-success animate-ping" />
-                    <span>VERIFIED ACTIVE</span>
+                    <span>ACTIVE</span>
                   </span>
-                  <span>STATIC DEMO</span>
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex items-center space-x-1 text-[11px] font-bold text-text-secondary hover:text-danger transition-colors cursor-pointer"
+                  >
+                    <LogOut className="h-3 w-3" />
+                    <span>Sign Out</span>
+                  </button>
                 </div>
               </div>
             </div>
