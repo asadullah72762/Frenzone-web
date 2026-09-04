@@ -14,6 +14,7 @@ import {
   TrendingUp,
   Activity,
 } from "lucide-react";
+import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
 import { Button } from "@/components/ui/button";
@@ -82,9 +83,11 @@ export function CreatorDashboardView({
           <Button variant="secondary" size="sm" onClick={() => setShowQrModal(true)} icon={<QrCode className="h-4 w-4" />}>
             Share QR Code
           </Button>
-          <Button variant="primary" size="sm" icon={<Video className="h-4 w-4" />}>
-            Go Live Studio
-          </Button>
+          <Link href="/creator/streams">
+            <Button variant="primary" size="sm" icon={<Video className="h-4 w-4" />}>
+              Go Live Studio
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -213,20 +216,32 @@ export function CreatorDashboardView({
           </div>
         </CardHeader>
         <CardContent>
-          <div className="divide-y divide-border-subtle">
-            {data.recentActivities.map((act) => (
-              <div key={act.id} className="py-3.5 flex items-center justify-between first:pt-0 last:pb-0">
-                <div className="flex items-center space-x-3">
-                  <div className="h-2 w-2 rounded-full bg-brand" />
-                  <div>
-                    <p className="text-sm font-medium text-text-primary">{act.title}</p>
-                    <span className="text-xs text-text-muted">{act.timestamp}</span>
-                  </div>
-                </div>
-                <ArrowUpRight className="h-4 w-4 text-text-muted" />
+          {(!data.recentActivities || data.recentActivities.length === 0) ? (
+            <div className="py-8 text-center">
+              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-surface-muted text-text-muted">
+                <Activity className="h-5 w-5" />
               </div>
-            ))}
-          </div>
+              <p className="text-sm font-medium text-text-primary">No recent activities yet</p>
+              <p className="text-xs text-text-muted mt-1 max-w-xs mx-auto">
+                Your completed live sessions, stream tips, and network referrals will appear here in real-time.
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-border-subtle">
+              {data.recentActivities.map((act) => (
+                <div key={act.id} className="py-3.5 flex items-center justify-between first:pt-0 last:pb-0">
+                  <div className="flex items-center space-x-3">
+                    <div className="h-2 w-2 rounded-full bg-brand" />
+                    <div>
+                      <p className="text-sm font-medium text-text-primary">{act.title}</p>
+                      <span className="text-xs text-text-muted">{act.timestamp}</span>
+                    </div>
+                  </div>
+                  <ArrowUpRight className="h-4 w-4 text-text-muted" />
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

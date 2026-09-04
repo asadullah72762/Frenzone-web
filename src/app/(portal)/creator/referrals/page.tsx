@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/feedback/status-badge";
 import { DataTable, Column } from "@/components/tables/data-table";
 import { creatorService } from "@/features/creator/services/creator.service";
+import { referralService } from "@/features/referrals/services/referral.service";
 import { useAsyncData } from "@/lib/hooks/use-async-data";
 import { creatorReferralsMock, creatorDashboardMock } from "@/mocks/creator-full.mock";
 import { formatCurrency } from "@/lib/formatting";
@@ -20,12 +21,24 @@ export default function CreatorReferralsPage() {
     400
   );
 
+  const { data: liveCodeData } = useAsyncData(
+    () => referralService.getCode(),
+    [],
+    400
+  );
+
+  const { data: liveStatsData } = useAsyncData(
+    () => referralService.getStats(),
+    [],
+    400
+  );
+
   const [copied, setCopied] = useState(false);
   const [showQr, setShowQr] = useState(false);
 
   const dataList = referrals || creatorReferralsMock;
-  const link = creatorDashboardMock.referralLink;
-  const code = creatorDashboardMock.referralCode;
+  const link = liveCodeData?.referralLink || creatorDashboardMock.referralLink;
+  const code = liveCodeData?.referralCode || creatorDashboardMock.referralCode;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(link);
@@ -77,8 +90,8 @@ export default function CreatorReferralsPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard
           label="Total Referred Creators"
-          value={dataList.length}
-          detail="3 active referral invitations"
+          value={liveStatsData?.stats?.totalReferred ?? dataList.length}
+          detail={`${liveStatsData?.stats?.qualifiedCount ?? 0} qualified creators (CR: ${liveStatsData?.stats?.conversionRate ?? "0%"})`}
           icon={<Users className="h-5 w-5" />}
         />
         <StatCard
