@@ -10,6 +10,8 @@ export type SignupInput = {
   email: string;
   password: string;
   referralCode?: string;
+  accountType?: "CREATOR" | "AGENCY";
+  agencyName?: string;
 };
 
 export type AuthResponse = {
@@ -27,11 +29,15 @@ export const authService = {
     return {
       user: {
         id: res.user._id,
-        role: res.user.role || "CREATOR",
+        role: res.user.role || "USER",
         displayName: `${res.user.firstname || ""} ${res.user.lastname || ""}`.trim() || res.user.username,
         email: res.user.email,
         creatorId: res.user.creatorApplicationId,
         agencyId: res.user.agencyMembership?.agency_id?._id,
+        isCreator: Boolean(res.user.isCreator),
+        isAgencyMember: Boolean(res.user.isAgencyMember),
+        creatorStatus: res.user.creatorStatus,
+        agencyMembership: res.user.agencyMembership,
       },
       expiresAt: new Date(Date.now() + 86400000).toISOString(),
     };

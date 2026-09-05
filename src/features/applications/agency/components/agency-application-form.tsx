@@ -1,6 +1,7 @@
 "use client";
+import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, type InputHTMLAttributes, type ReactNode } from "react";
+import { useState, useEffect, type InputHTMLAttributes, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
@@ -8,17 +9,34 @@ import { SupportingDocumentUpload } from "./supporting-document-upload";
 import type { AgencyApplicationInput } from "../../types/application";
 import { agencyApplicationSchema } from "../schemas/agency-application.schema";
 import { agencyApplicationService } from "../services/agency-application.service";
+import { authService } from "@/features/auth/services/auth.service";
+
 export function AgencyApplicationForm() {
   const [serverError, setServerError] = useState<string>();
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<AgencyApplicationInput>({
     resolver: zodResolver(agencyApplicationSchema),
     defaultValues: { acceptTerms: false, acceptAgreement: false },
   });
   const [isSuccess, setIsSuccess] = useState(false);
+
+  useEffect(() => {
+    authService
+      .getSession()
+      .then((session) => {
+        if (session?.user) {
+          if (session.user.displayName) setValue("contactName", session.user.displayName);
+          if (session.user.email) setValue("email", session.user.email);
+        }
+      })
+      .catch(() => {
+        // Unauthenticated visitor
+      });
+  }, [setValue]);
 
   const submit = async (data: AgencyApplicationInput) => {
     setServerError(undefined);
@@ -34,11 +52,21 @@ export function AgencyApplicationForm() {
 
   if (isSuccess) {
     return (
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-emerald-900 shadow-sm">
-        <h3 className="text-xl font-bold">Agency Application Submitted!</h3>
-        <p className="mt-2 text-sm">
-          Your Agency Application has been received and is currently under review by the Frenzone admin team.
-        </p>
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-emerald-900 shadow-sm space-y-4">
+        <div>
+          <h3 className="text-xl font-bold">Agency Registration Complete!</h3>
+          <p className="mt-1 text-sm text-emerald-800">
+            Your Agency application has been submitted and your agency workspace has been provisioned.
+          </p>
+        </div>
+        <div className="pt-2">
+          <Link
+            href="/agency"
+            className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-95 transition-all shadow-sm"
+          >
+            Enter Agency Workspace →
+          </Link>
+        </div>
       </div>
     );
   }
@@ -150,9 +178,17 @@ export function AgencyApplicationForm() {
           {serverError}
         </p>
       ) : null}
-      <Button disabled={isSubmitting} type="submit">
-        {isSubmitting ? "Submitting…" : "Submit application"}
-      </Button>
+      <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+        <Button disabled={isSubmitting} type="submit" variant="primary" className="w-full sm:w-auto">
+          {isSubmitting ? "Submitting…" : "Submit application"}
+        </Button>
+        <Link
+          href="/agency"
+          className="w-full sm:w-auto text-center px-4 py-2.5 text-xs font-semibold text-text-secondary hover:text-text-primary border border-border rounded-xl hover:bg-surface-muted transition-colors"
+        >
+          Skip for now, explore workspace →
+        </Link>
+      </div>
     </form>
   );
 }

@@ -1,12 +1,9 @@
 import { apiClient } from "@/lib/api/client";
 import {
-  creatorComplianceMock,
-  creatorReferralsMock,
   creatorEarningsMock,
   creatorPayoutsMock,
   creatorAgencyContractMock,
   creatorMarketingKitsMock,
-  creatorSupportTicketsMock,
 } from "@/mocks/creator-full.mock";
 import type {
   CreatorDashboard,
@@ -19,6 +16,7 @@ import type {
   CreatorAgencyContract,
   CreatorMarketingKit,
   SupportTicket,
+  SupportTicketMessage,
 } from "@/types/creator";
 
 export class CreatorService {
@@ -128,16 +126,44 @@ export class CreatorService {
     throw new Error("Failed to load creator performance");
   }
 
-  async getCompliance(): Promise<CreatorCompliance> {
-    return Promise.resolve(creatorComplianceMock);
+  async getCompliance(month?: string): Promise<CreatorCompliance> {
+    try {
+      const url = month ? `/creator/compliance?month=${encodeURIComponent(month)}` : "/creator/compliance";
+      const res = await apiClient.get<{ success: boolean; data: CreatorCompliance }>(url);
+      if (res?.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.error("Failed to load creator compliance:", err);
+      throw err;
+    }
+    throw new Error("Failed to load creator compliance");
   }
 
   async getReferrals(): Promise<CreatorReferralItem[]> {
-    return Promise.resolve(creatorReferralsMock);
+    try {
+      const res = await apiClient.get<{ success: boolean; data: CreatorReferralItem[] }>("/creator/referrals");
+      if (res?.data && Array.isArray(res.data)) {
+        return res.data;
+      }
+      return [];
+    } catch (err) {
+      console.error("Failed to load creator referrals:", err);
+      throw err;
+    }
   }
 
   async getEarnings(): Promise<CreatorEarningsBreakdown> {
-    return Promise.resolve(creatorEarningsMock);
+    try {
+      const res = await apiClient.get<{ success: boolean; data: CreatorEarningsBreakdown }>("/creator/earnings");
+      if (res?.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.error("Failed to load creator earnings:", err);
+      throw err;
+    }
+    throw new Error("Failed to load creator earnings");
   }
 
   async getPayouts(): Promise<CreatorPayoutItem[]> {
@@ -153,21 +179,79 @@ export class CreatorService {
   }
 
   async getSupportTickets(): Promise<SupportTicket[]> {
-    return Promise.resolve(creatorSupportTicketsMock);
+    try {
+      const res = await apiClient.get<{ success: boolean; data: SupportTicket[] }>("/creator/support/tickets");
+      if (res?.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.error("Failed to load support tickets:", err);
+      throw err;
+    }
+    throw new Error("Failed to load support tickets");
   }
 
-  async createSupportTicket(subject: string, category: string): Promise<SupportTicket> {
-    const newTicket: SupportTicket = {
-      id: `TICK-${Math.floor(1000 + Math.random() * 9000)}`,
-      subject,
-      category: category as any,
-      status: "OPEN",
-      priority: "MEDIUM",
-      createdAt: new Date().toISOString().split("T")[0],
-      updatedAt: new Date().toISOString().split("T")[0],
-      messagesCount: 1,
-    };
-    return Promise.resolve(newTicket);
+  async createSupportTicket(subject: string, category: string, message: string): Promise<SupportTicket> {
+    try {
+      const res = await apiClient.post<{ success: boolean; data: SupportTicket }>("/creator/support/tickets", {
+        subject,
+        category,
+        message,
+      });
+      if (res?.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.error("Failed to create support ticket:", err);
+      throw err;
+    }
+    throw new Error("Failed to create support ticket");
+  }
+
+  async getTicketDetails(ticketId: string): Promise<SupportTicket> {
+    try {
+      const res = await apiClient.get<{ success: boolean; data: SupportTicket }>(
+        `/creator/support/tickets/${encodeURIComponent(ticketId)}`
+      );
+      if (res?.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.error("Failed to load ticket details:", err);
+      throw err;
+    }
+    throw new Error("Failed to load ticket details");
+  }
+
+  async sendTicketMessage(ticketId: string, message: string): Promise<SupportTicketMessage> {
+    try {
+      const res = await apiClient.post<{ success: boolean; data: SupportTicketMessage }>(
+        `/creator/support/tickets/${encodeURIComponent(ticketId)}/messages`,
+        { message }
+      );
+      if (res?.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.error("Failed to send ticket message:", err);
+      throw err;
+    }
+    throw new Error("Failed to send ticket message");
+  }
+
+  async closeTicket(ticketId: string): Promise<{ id: string; status: string }> {
+    try {
+      const res = await apiClient.patch<{ success: boolean; data: { id: string; status: string } }>(
+        `/creator/support/tickets/${encodeURIComponent(ticketId)}/close`
+      );
+      if (res?.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.error("Failed to close ticket:", err);
+      throw err;
+    }
+    throw new Error("Failed to close ticket");
   }
 }
 

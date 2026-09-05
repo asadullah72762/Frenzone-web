@@ -24,7 +24,16 @@ import type { SupportTicket } from "@/types/creator";
 
 export class AgencyService {
   async getDashboard(): Promise<AgencyDashboard> {
-    return Promise.resolve(agencyDashboardMock);
+    try {
+      const res = await apiClient.get<{ success: boolean; data: AgencyDashboard }>("/agency/dashboard");
+      if (res?.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.error("Failed to load agency dashboard:", err);
+      throw err;
+    }
+    throw new Error("Failed to load agency dashboard");
   }
 
   async getProfile(): Promise<AgencyProfile> {
@@ -59,68 +68,63 @@ export class AgencyService {
 
   async getCreators(): Promise<AgencyCreatorItem[]> {
     try {
-      const res = await apiClient.get<{ success: boolean; roster: any[] }>("/agency/roster");
-      if (res?.roster && res.roster.length > 0) {
-        return res.roster.map((rel: any, idx: number) => {
-          const creator = rel.creator_id || {};
-          return {
-            id: rel._id || `cr-${idx}`,
-            creatorId: creator._id || `c-${idx}`,
-            name: `${creator.firstname || ""} ${creator.lastname || ""}`.trim() || creator.username || `Creator ${idx + 1}`,
-            username: creator.username || `creator_${idx}`,
-            avatarUrl: creator.profilePicture || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80`,
-            category: "General",
-            monthlyLiveHours: 0,
-            complianceRate: 100,
-            monthlyRevenue: { amount: "0.00", currency: "USD" },
-            agencyCommission: { amount: "0.00", currency: "USD" },
-            status: rel.status === "active" ? "ACTIVE" : "INACTIVE",
-            joinedDate: rel.createdAt ? new Date(rel.createdAt).toISOString().split("T")[0] : "Recently",
-          };
-        });
+      const res = await apiClient.get<{ success: boolean; roster: AgencyCreatorItem[] }>("/agency/roster");
+      if (res?.roster && Array.isArray(res.roster)) {
+        return res.roster;
       }
-    } catch {
-      // Graceful fallback to mock data
+    } catch (err) {
+      console.error("Failed to load agency roster:", err);
+      throw err;
     }
-    return Promise.resolve(agencyCreatorsMock);
+    return [];
   }
 
   async getInvitations(): Promise<AgencyInvitation[]> {
-    return Promise.resolve(agencyInvitationsMock);
+    try {
+      const res = await apiClient.get<{ success: boolean; data: AgencyInvitation[] }>("/agency/invitations");
+      if (res?.data && Array.isArray(res.data)) {
+        return res.data;
+      }
+    } catch (err) {
+      console.error("Failed to load agency invitations:", err);
+      throw err;
+    }
+    return [];
   }
 
   async sendInvitation(username: string, email: string): Promise<AgencyInvitation> {
-    try {
-      const res = await apiClient.post<{ success: boolean; relationship: any; creator: any }>("/agency/invite-creator", {
-        username,
-      });
-      if (res?.relationship) {
-        return {
-          id: res.relationship._id,
-          creatorUsername: res.creator?.username || username,
-          creatorEmail: email || `${username}@frenzone.live`,
-          sentDate: new Date().toISOString().split("T")[0],
-          expiresDate: new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0],
-          status: "PENDING_CONSENT",
-        };
-      }
-    } catch {
-      // Fallback
+    const res = await apiClient.post<{ success: boolean; relationship: any; creator: any }>("/agency/invite-creator", {
+      username,
+      email,
+    });
+    if (res?.relationship) {
+      return {
+        id: res.relationship._id,
+        creatorUsername: res.creator?.username || username,
+        creatorEmail: email || res.creator?.email || `${username}@frenzone.live`,
+        sentDate: new Date().toISOString().split("T")[0],
+        expiresDate: new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0],
+        status: "PENDING_CONSENT",
+      };
     }
+    throw new Error("Failed to send invitation");
+  }
 
-    const newInv: AgencyInvitation = {
-      id: `inv-${Math.floor(100 + Math.random() * 900)}`,
-      creatorUsername: username,
-      creatorEmail: email,
-      sentDate: new Date().toISOString().split("T")[0],
-      expiresDate: new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0],
-      status: "PENDING_CONSENT",
-    };
-    return Promise.resolve(newInv);
+  async cancelInvitation(id: string): Promise<void> {
+    await apiClient.delete(`/agency/invitations/${id}`);
   }
 
   async getPerformance(): Promise<AgencyPerformance> {
-    return Promise.resolve(agencyPerformanceMock);
+    try {
+      const res = await apiClient.get<{ success: boolean; data: AgencyPerformance }>("/agency/performance");
+      if (res?.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.error("Failed to load agency performance:", err);
+      throw err;
+    }
+    throw new Error("Failed to load agency performance");
   }
 
   async getCommissions(): Promise<AgencyCommissionReport> {

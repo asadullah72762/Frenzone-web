@@ -6,8 +6,21 @@ import { StatCard } from "@/components/ui/stat-card";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { creatorService } from "@/features/creator/services/creator.service";
 import { useAsyncData } from "@/lib/hooks/use-async-data";
-import { creatorEarningsMock } from "@/mocks/creator-full.mock";
 import { formatCurrency } from "@/lib/formatting";
+import type { CreatorEarningsBreakdown } from "@/types/creator";
+
+const emptyCreatorEarnings: CreatorEarningsBreakdown = {
+  totalEarnings: { amount: "0.00", currency: "USD" },
+  availableForPayout: { amount: "0.00", currency: "USD" },
+  pendingClearance: { amount: "0.00", currency: "USD" },
+  sources: [
+    { category: "Live Stream Gifts", amount: { amount: "0.00", currency: "USD" }, percentage: 0 },
+    { category: "Direct Tips", amount: { amount: "0.00", currency: "USD" }, percentage: 0 },
+    { category: "Club Subscriptions", amount: { amount: "0.00", currency: "USD" }, percentage: 0 },
+    { category: "Referral Bonus", amount: { amount: "0.00", currency: "USD" }, percentage: 0 },
+  ],
+  history: [],
+};
 
 export default function CreatorEarningsPage() {
   const { data: earningsData, isLoading } = useAsyncData(
@@ -16,7 +29,7 @@ export default function CreatorEarningsPage() {
     400
   );
 
-  const data = earningsData || creatorEarningsMock;
+  const data = earningsData || emptyCreatorEarnings;
 
   return (
     <div className="space-y-6">

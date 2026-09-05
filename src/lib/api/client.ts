@@ -43,6 +43,10 @@ export const apiClient = {
       method: "PATCH",
       body: body === undefined ? undefined : JSON.stringify(body),
     }),
+  delete: <T>(path: string) =>
+    request<T>(path, {
+      method: "DELETE",
+    }),
   postFormData: async <T>(path: string, formData: FormData): Promise<T> => {
     const token =
       typeof window !== "undefined"

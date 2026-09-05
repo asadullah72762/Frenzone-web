@@ -8,7 +8,6 @@ import { StatusBadge } from "@/components/feedback/status-badge";
 import { DataTable, Column } from "@/components/tables/data-table";
 import { agencyService } from "@/features/agency/services/agency.service";
 import { useAsyncData } from "@/lib/hooks/use-async-data";
-import { agencyCreatorsMock } from "@/mocks/agency-full.mock";
 import { formatCurrency } from "@/lib/formatting";
 import type { AgencyCreatorItem } from "@/types/agency";
 
@@ -21,7 +20,7 @@ export default function AgencyCreatorsPage() {
 
   const [selectedCreator, setSelectedCreator] = useState<AgencyCreatorItem | null>(null);
 
-  const dataList = creators || agencyCreatorsMock;
+  const dataList = creators || [];
 
   const columns: Column<AgencyCreatorItem>[] = [
     {

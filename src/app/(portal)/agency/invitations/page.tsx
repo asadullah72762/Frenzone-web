@@ -8,7 +8,6 @@ import { StatusBadge } from "@/components/feedback/status-badge";
 import { DataTable, Column } from "@/components/tables/data-table";
 import { agencyService } from "@/features/agency/services/agency.service";
 import { useAsyncData } from "@/lib/hooks/use-async-data";
-import { agencyInvitationsMock } from "@/mocks/agency-full.mock";
 import type { AgencyInvitation } from "@/types/agency";
 
 export default function AgencyInvitationsPage() {
@@ -23,29 +22,46 @@ export default function AgencyInvitationsPage() {
   const [email, setEmail] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [inviteError, setInviteError] = useState<string>();
 
-  const dataList = invitations || agencyInvitationsMock;
+  const dataList = invitations || [];
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim() || !email.trim()) return;
+    if (!username.trim() && !email.trim()) return;
     setIsSending(true);
+    setInviteError(undefined);
 
-    await agencyService.sendInvitation(username, email);
-    setIsSending(false);
-    setSuccess(true);
-    setUsername("");
-    setEmail("");
-    refetch();
+    try {
+      await agencyService.sendInvitation(username.trim(), email.trim());
+      setIsSending(false);
+      setSuccess(true);
+      setUsername("");
+      setEmail("");
+      refetch();
 
-    setTimeout(() => {
-      setSuccess(false);
-      setShowModal(false);
-    }, 2000);
+      setTimeout(() => {
+        setSuccess(false);
+        setShowModal(false);
+      }, 1500);
+    } catch (err: any) {
+      setIsSending(false);
+      setInviteError(err.message || "Failed to send invitation. Please verify the username or email.");
+    }
+  };
+
+  const handleCancel = async (id: string) => {
+    if (!confirm("Are you sure you want to revoke this invitation?")) return;
+    try {
+      await agencyService.cancelInvitation(id);
+      refetch();
+    } catch (err: any) {
+      alert(err.message || "Failed to revoke invitation");
+    }
   };
 
   const columns: Column<AgencyInvitation>[] = [
-    { key: "id", header: "Invite ID", render: (item) => <span className="font-mono text-xs font-semibold text-text-primary">{item.id}</span> },
+    { key: "id", header: "Invite ID", render: (item) => <span className="font-mono text-xs font-semibold text-text-primary">{item.id.slice(-6).toUpperCase()}</span> },
     { key: "creatorUsername", header: "Creator Handle", render: (item) => <span className="font-bold text-text-primary">@{item.creatorUsername}</span> },
     { key: "creatorEmail", header: "Email Address" },
     { key: "sentDate", header: "Sent Date" },
@@ -79,6 +95,18 @@ export default function AgencyInvitationsPage() {
         isLoading={isLoading}
         searchKey="creatorUsername"
         searchPlaceholder="Search creator handle..."
+        actions={(item) =>
+          item.status === "PENDING_CONSENT" ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleCancel(item.id)}
+              className="text-danger hover:text-danger text-xs font-semibold"
+            >
+              Revoke
+            </Button>
+          ) : null
+        }
       />
 
       {/* Invite Modal */}
@@ -97,6 +125,11 @@ export default function AgencyInvitationsPage() {
               </div>
             ) : (
               <form onSubmit={handleSend} className="space-y-4 pt-2">
+                {inviteError && (
+                  <div className="rounded-lg bg-red-50 p-2.5 border border-red-200 text-xs text-danger font-medium">
+                    {inviteError}
+                  </div>
+                )}
                 <div>
                   <label className="text-xs font-semibold text-text-secondary">Creator Frenzone Username</label>
                   <input

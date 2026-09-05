@@ -38,12 +38,19 @@ export default async function ReferralLandingPage({ params }: Props) {
         </div>
 
         <div className="space-y-3 pt-2">
-          <a
-            href="frenzone://join"
+          <Link
+            href={`/signup?ref=${encodeURIComponent(referralCode)}`}
             className="w-full bg-brand hover:bg-brand-hover text-white inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold shadow-sm transition-colors"
           >
-            <span>Open Frenzone App</span>
+            <span>Register Free with Referral</span>
             <ExternalLink className="h-4 w-4" />
+          </Link>
+
+          <a
+            href="frenzone://join"
+            className="w-full bg-surface-muted hover:bg-surface-muted/80 text-text-primary border border-border inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-colors"
+          >
+            <span>Open in Frenzone App</span>
           </a>
 
           <div className="grid grid-cols-2 gap-3 pt-2">

@@ -4,7 +4,9 @@ export type UserRole =
   | "CREATOR"
   | "AGENCY_OWNER"
   | "AGENCY_MANAGER"
-  | "AGENCY_FINANCE";
+  | "AGENCY_FINANCE"
+  | "USER";
+
 export type AuthUser = {
   id: string;
   role: UserRole;
@@ -12,5 +14,9 @@ export type AuthUser = {
   email: string;
   creatorId?: string;
   agencyId?: string;
+  isCreator?: boolean;
+  isAgencyMember?: boolean;
+  creatorStatus?: string;
+  agencyMembership?: any;
 };
 export type Session = { user: AuthUser; expiresAt: string };

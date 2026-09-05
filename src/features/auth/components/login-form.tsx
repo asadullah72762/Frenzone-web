@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { LogIn, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { useState, useEffect } from "react";
+import { LogIn, Eye, EyeOff, ShieldCheck, Video, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { authService } from "@/features/auth/services/auth.service";
 
@@ -12,9 +12,19 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState<"CREATOR" | "AGENCY_OWNER">("CREATOR");
+  const [targetPortal, setTargetPortal] = useState<"CREATOR" | "AGENCY">("CREATOR");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string>();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const portal = params.get("portal");
+      if (portal && portal.toUpperCase() === "AGENCY") {
+        setTargetPortal("AGENCY");
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,11 +43,30 @@ export function LoginForm() {
         return;
       }
 
-      // Route based on user selection / backend role
-      if (role === "CREATOR") {
-        router.push("/creator");
+      // Authoritative Role Resolution from backend session
+      const session = await authService.getSession();
+      const user = session.user;
+
+      if (targetPortal === "AGENCY") {
+        if (user.isAgencyMember || user.role?.startsWith("AGENCY_")) {
+          router.push("/agency");
+        } else {
+          // User intended to log in to Agency portal but hasn't created their agency yet.
+          // Seamlessly route to Agency Onboarding to complete agency profile.
+          router.push("/agency-apply");
+        }
       } else {
-        router.push("/agency");
+        // Target is CREATOR
+        if (user.isAgencyMember && !user.isCreator && user.creatorStatus !== "approved") {
+          setErrorMsg("Access denied. Your account is registered strictly as an Agency. Please select the Agency Portal.");
+          return;
+        }
+        if (user.isCreator || user.creatorStatus === "approved" || user.creatorStatus === "pending") {
+          router.push("/creator");
+        } else {
+          // Standard registered user: route to Creator apply page to initiate onboarding
+          router.push("/creator-apply");
+        }
       }
     } catch (err: any) {
       setErrorMsg(err.message || "Invalid credentials. Please check your email and password.");
@@ -62,6 +91,38 @@ export function LoginForm() {
             {errorMsg}
           </div>
         ) : null}
+
+        <div>
+          <label className="text-xs font-semibold text-text-secondary block mb-1.5">
+            Select Destination Workspace
+          </label>
+          <div className="grid grid-cols-2 gap-2 p-1 bg-surface-muted rounded-xl border border-border">
+            <button
+              type="button"
+              onClick={() => setTargetPortal("CREATOR")}
+              className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
+                targetPortal === "CREATOR"
+                  ? "bg-brand text-white shadow-sm"
+                  : "text-text-secondary hover:text-text-primary"
+              }`}
+            >
+              <Video className="h-3.5 w-3.5" />
+              <span>Creator Portal</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTargetPortal("AGENCY")}
+              className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
+                targetPortal === "AGENCY"
+                  ? "bg-brand text-white shadow-sm"
+                  : "text-text-secondary hover:text-text-primary"
+              }`}
+            >
+              <Building2 className="h-3.5 w-3.5" />
+              <span>Agency Portal</span>
+            </button>
+          </div>
+        </div>
 
         <div>
           <label className="text-xs font-semibold text-text-secondary">Email Address</label>
@@ -103,18 +164,6 @@ export function LoginForm() {
               )}
             </button>
           </div>
-        </div>
-
-        <div>
-          <label className="text-xs font-semibold text-text-secondary">Target Workspace Role</label>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value as any)}
-            className="w-full mt-1 rounded-lg border border-border bg-surface px-3.5 py-2 text-sm font-medium text-text-primary outline-none focus:border-brand cursor-pointer"
-          >
-            <option value="CREATOR">Creator Portal (/creator)</option>
-            <option value="AGENCY_OWNER">Agency Portal (/agency)</option>
-          </select>
         </div>
 
         <Button type="submit" variant="primary" className="w-full" isLoading={isSubmitting} icon={<LogIn className="h-4 w-4" />}>

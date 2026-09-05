@@ -142,8 +142,18 @@ export type CreatorMarketingKit = {
   previewUrl: string;
 };
 
+export type SupportTicketMessage = {
+  id: string;
+  senderId?: string;
+  senderRole: "CREATOR" | "SUPPORT" | "ADMIN";
+  senderName: string;
+  message: string;
+  createdAt: string;
+};
+
 export type SupportTicket = {
   id: string;
+  ticketNumber?: string;
   subject: string;
   category: "Technical" | "Payouts" | "Compliance" | "General";
   status: "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
@@ -151,4 +161,5 @@ export type SupportTicket = {
   createdAt: string;
   updatedAt: string;
   messagesCount: number;
+  messages?: SupportTicketMessage[];
 };

@@ -12,6 +12,13 @@ export type ReferralStatsResponse = {
     totalReferred: number;
     qualifiedCount: number;
     conversionRate: string;
+    totalReferralEarningsUSD?: string;
+    referralTier?: string;
+    tierDetail?: string;
+    trend?: {
+      value: string;
+      positive: boolean;
+    };
   };
   recentReferrals: any[];
 };

@@ -7,17 +7,40 @@ import { ChartSkeleton } from "@/components/ui/skeleton";
 import { BarChart } from "@/components/ui/bar-chart";
 import { agencyService } from "@/features/agency/services/agency.service";
 import { useAsyncData } from "@/lib/hooks/use-async-data";
-import { agencyPerformanceMock } from "@/mocks/agency-full.mock";
 import { formatCurrency } from "@/lib/formatting";
+import type { AgencyPerformance } from "@/types/agency";
+
+const emptyAgencyPerformance: AgencyPerformance = {
+  totalLiveHoursAggregate: 0,
+  avgHoursPerCreator: 0,
+  totalCreatorCount: 0,
+  grossCreatorRevenue: { amount: "0.00", currency: "USD" },
+  netAgencyCommission: { amount: "0.00", currency: "USD" },
+  monthlyTrends: [
+    { month: "Apr", liveHours: 0, grossRevenue: 0, commission: 0 },
+    { month: "May", liveHours: 0, grossRevenue: 0, commission: 0 },
+    { month: "Jun", liveHours: 0, grossRevenue: 0, commission: 0 },
+    { month: "Jul", liveHours: 0, grossRevenue: 0, commission: 0 },
+    { month: "Aug", liveHours: 0, grossRevenue: 0, commission: 0 },
+  ],
+  categoryBreakdown: [
+    {
+      category: "General",
+      creatorsCount: 0,
+      hoursStreamed: 0,
+      revenue: { amount: "0.00", currency: "USD" },
+    },
+  ],
+};
 
 export default function AgencyPerformancePage() {
   const { data: perf, isLoading } = useAsyncData(
     () => agencyService.getPerformance(),
     [],
-    500
+    400
   );
 
-  const data = perf || agencyPerformanceMock;
+  const data = perf || emptyAgencyPerformance;
 
   if (isLoading) return <ChartSkeleton />;
 

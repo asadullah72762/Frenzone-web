@@ -10,7 +10,6 @@ import { DataTable, Column } from "@/components/tables/data-table";
 import { creatorService } from "@/features/creator/services/creator.service";
 import { referralService } from "@/features/referrals/services/referral.service";
 import { useAsyncData } from "@/lib/hooks/use-async-data";
-import { creatorReferralsMock, creatorDashboardMock } from "@/mocks/creator-full.mock";
 import { formatCurrency } from "@/lib/formatting";
 import type { CreatorReferralItem } from "@/types/creator";
 
@@ -36,11 +35,12 @@ export default function CreatorReferralsPage() {
   const [copied, setCopied] = useState(false);
   const [showQr, setShowQr] = useState(false);
 
-  const dataList = referrals || creatorReferralsMock;
-  const link = liveCodeData?.referralLink || creatorDashboardMock.referralLink;
-  const code = liveCodeData?.referralCode || creatorDashboardMock.referralCode;
+  const dataList = referrals || [];
+  const code = liveCodeData?.referralCode || "";
+  const link = liveCodeData?.referralLink || (code ? `https://frenzone.live/join/${code}` : "");
 
   const handleCopy = () => {
+    if (!link) return;
     navigator.clipboard.writeText(link);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -52,7 +52,15 @@ export default function CreatorReferralsPage() {
       header: "Referred Creator",
       render: (item) => (
         <div className="flex items-center space-x-3">
-          <img src={item.avatarUrl} alt={item.referredUser} className="h-9 w-9 rounded-full object-cover border border-border" />
+          <img
+            src={item.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
+            alt={item.referredUser}
+            className="h-9 w-9 rounded-full object-cover border border-border"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src =
+                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
+            }}
+          />
           <span className="font-semibold text-text-primary">{item.referredUser}</span>
         </div>
       ),
@@ -96,15 +104,18 @@ export default function CreatorReferralsPage() {
         />
         <StatCard
           label="Total Referral Earnings"
-          value="$425.00"
+          value={formatCurrency({
+            amount: liveStatsData?.stats?.totalReferralEarningsUSD ?? "0.00",
+            currency: "USD",
+          })}
           detail="10% recurring referral split"
-          trend={{ value: "+15.2%", positive: true }}
+          trend={liveStatsData?.stats?.trend}
           icon={<DollarSign className="h-5 w-5" />}
         />
         <StatCard
           label="Referral Tier"
-          value="VIP Partner"
-          detail="Qualified for priority payout"
+          value={liveStatsData?.stats?.referralTier ?? "Starter"}
+          detail={liveStatsData?.stats?.tierDetail ?? "Invite creators to unlock tier bonuses"}
           icon={<Award className="h-5 w-5" />}
         />
       </div>
@@ -117,7 +128,13 @@ export default function CreatorReferralsPage() {
               <Link2 className="h-5 w-5 text-brand" />
               <CardTitle>Your Verified Referral Link</CardTitle>
             </div>
-            <Button variant="secondary" size="sm" onClick={() => setShowQr(true)} icon={<QrCode className="h-4 w-4" />}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setShowQr(true)}
+              icon={<QrCode className="h-4 w-4" />}
+              disabled={!code}
+            >
               View QR Code
             </Button>
           </div>
@@ -130,15 +147,20 @@ export default function CreatorReferralsPage() {
             <input
               type="text"
               readOnly
-              value={link}
+              value={link || "Generating your referral link..."}
               className="w-full rounded-lg border border-border bg-surface-muted px-4 py-2.5 text-xs font-mono text-text-primary outline-none"
             />
-            <Button variant="primary" onClick={handleCopy} icon={copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}>
+            <Button
+              variant="primary"
+              onClick={handleCopy}
+              disabled={!link}
+              icon={copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
+            >
               {copied ? "Copied" : "Copy Link"}
             </Button>
           </div>
           <p className="text-xs text-text-muted">
-            Referral Code: <strong className="text-brand">{code}</strong>
+            Referral Code: <strong className="text-brand">{code || "—"}</strong>
           </p>
         </CardContent>
       </Card>
@@ -152,6 +174,15 @@ export default function CreatorReferralsPage() {
           isLoading={isLoading}
           searchKey="referredUser"
           searchPlaceholder="Search referred creators..."
+          filterKey="status"
+          filterOptions={[
+            { label: "All Statuses", value: "ALL" },
+            { label: "Active", value: "ACTIVE" },
+            { label: "Pending", value: "PENDING" },
+          ]}
+          emptyTitle="No referred creators yet"
+          emptyDescription="Share your referral link above to invite creators and earn recurring bonuses on their stream revenue."
+          emptyIcon={Users}
         />
       </div>
 
@@ -161,8 +192,16 @@ export default function CreatorReferralsPage() {
           <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-modal border border-border text-center">
             <h3 className="text-lg font-bold text-text-primary">Referral QR Code</h3>
             <p className="text-xs text-text-secondary mt-1">Code: {code}</p>
-            <div className="my-6 mx-auto flex h-48 w-48 items-center justify-center rounded-xl border-2 border-brand/20 bg-brand-soft/30 p-4">
-              <QrCode className="h-32 w-32 text-brand" />
+            <div className="my-6 mx-auto flex h-52 w-52 items-center justify-center rounded-xl border-2 border-brand/20 bg-white p-3 shadow-inner">
+              {link ? (
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(link)}`}
+                  alt={`Referral QR for ${code}`}
+                  className="h-44 w-44 rounded-lg object-contain"
+                />
+              ) : (
+                <QrCode className="h-32 w-32 text-brand" />
+              )}
             </div>
             <Button variant="primary" className="w-full" onClick={() => setShowQr(false)}>
               Close
