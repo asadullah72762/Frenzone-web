@@ -18,5 +18,6 @@ export type AuthUser = {
   isAgencyMember?: boolean;
   creatorStatus?: string;
   agencyMembership?: any;
+  profilePicture?: string;
 };
 export type Session = { user: AuthUser; expiresAt: string };

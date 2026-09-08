@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import type { NavigationItem } from "@/config/navigation";
 import { Container } from "./container";
 import { LogOut, User, Building2, ChevronRight, ShieldAlert, RefreshCw, ArrowRight } from "lucide-react";
@@ -20,11 +20,21 @@ export function PortalShell({ product, links, children }: Props) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const { data: session, isLoading, error } = useAsyncData(
+  const { data: session, isLoading, error, refetch } = useAsyncData(
     () => authService.getSession(),
     [],
     100
   );
+
+  useEffect(() => {
+    const handleProfileUpdated = () => {
+      refetch();
+    };
+    window.addEventListener("frenzone_profile_updated", handleProfileUpdated);
+    return () => {
+      window.removeEventListener("frenzone_profile_updated", handleProfileUpdated);
+    };
+  }, [refetch]);
 
   const handleLogout = async () => {
     try {
@@ -142,9 +152,23 @@ export function PortalShell({ product, links, children }: Props) {
             <div className="pt-6 border-t border-border mt-6 px-1">
               <div className="rounded-2xl border border-border bg-surface p-3.5 shadow-sm space-y-3">
                 <div className="flex items-center space-x-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-cta text-white font-extrabold text-xs shadow-sm">
-                    {product === "Creator" ? <User className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
-                  </div>
+                  {session?.user?.profilePicture ? (
+                    <img
+                      src={session.user.profilePicture}
+                      alt={session?.user?.displayName || "User"}
+                      className="h-9 w-9 rounded-xl object-cover border border-brand/20 shadow-sm"
+                    />
+                  ) : (
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-cta text-white font-extrabold text-xs shadow-sm select-none">
+                      {session?.user?.displayName ? (
+                        session.user.displayName.charAt(0).toUpperCase()
+                      ) : product === "Creator" ? (
+                        <User className="h-4 w-4" />
+                      ) : (
+                        <Building2 className="h-4 w-4" />
+                      )}
+                    </div>
+                  )}
                   <div className="overflow-hidden flex-1">
                     <p className="text-xs font-bold text-text-primary truncate">
                       {session?.user?.displayName || (product === "Creator" ? "Creator User" : "Agency Member")}

@@ -66,7 +66,7 @@ export class CreatorService {
           country: p.country || "",
           language: p.language || "English",
           bio: p.bio || "",
-          avatarUrl: p.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+          avatarUrl: p.avatarUrl || "",
           categories: p.categories || [],
           socialLinks: {
             instagram: p.socialLinks?.instagram || "",
@@ -100,6 +100,24 @@ export class CreatorService {
     };
     const res = await apiClient.patch<{ success: boolean; data: CreatorProfile }>("/creator/profile", payload);
     if (res?.data) {
+      if (typeof window !== "undefined") {
+        try {
+          const cachedUser = localStorage.getItem("user");
+          if (cachedUser) {
+            const parsed = JSON.parse(cachedUser);
+            if (updates.fullName) {
+              const parts = updates.fullName.trim().split(/\s+/);
+              parsed.firstname = parts[0] || parsed.firstname;
+              parsed.lastname = parts.slice(1).join(" ") || parsed.lastname;
+              parsed.displayName = updates.fullName;
+            }
+            localStorage.setItem("user", JSON.stringify(parsed));
+          }
+          window.dispatchEvent(new CustomEvent("frenzone_profile_updated", { detail: res.data }));
+        } catch (e) {
+          // ignore cache sync error
+        }
+      }
       return res.data;
     }
     throw new Error("Failed to update creator profile");
@@ -108,7 +126,21 @@ export class CreatorService {
   async uploadAvatar(file: File): Promise<{ success: boolean; avatarUrl: string }> {
     const formData = new FormData();
     formData.append("image", file);
-    return apiClient.postFormData<{ success: boolean; avatarUrl: string }>("/creator/avatar", formData);
+    const res = await apiClient.postFormData<{ success: boolean; avatarUrl: string }>("/creator/avatar", formData);
+    if (res?.avatarUrl && typeof window !== "undefined") {
+      try {
+        const cachedUser = localStorage.getItem("user");
+        if (cachedUser) {
+          const parsed = JSON.parse(cachedUser);
+          parsed.profilePicture = res.avatarUrl;
+          localStorage.setItem("user", JSON.stringify(parsed));
+        }
+        window.dispatchEvent(new CustomEvent("frenzone_profile_updated", { detail: res }));
+      } catch (e) {
+        // ignore cache sync error
+      }
+    }
+    return res;
   }
 
   async getPerformance(range = "30d"): Promise<CreatorPerformance> {
@@ -171,7 +203,29 @@ export class CreatorService {
   }
 
   async getAgencyContract(): Promise<CreatorAgencyContract> {
-    return Promise.resolve(creatorAgencyContractMock);
+    try {
+      const res = await apiClient.get<{ success: boolean; data: CreatorAgencyContract }>("/creator/agency");
+      if (res?.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.error("Failed to load creator agency contract:", err);
+      throw err;
+    }
+    throw new Error("Failed to load agency partnership details");
+  }
+
+  async respondAgencyInvite(relationshipId: string, action: "accept" | "reject"): Promise<{ success: boolean; message: string }> {
+    try {
+      const res = await apiClient.post<{ success: boolean; message: string }>("/creator/agency/respond", {
+        relationship_id: relationshipId,
+        action,
+      });
+      return res;
+    } catch (err) {
+      console.error("Failed to respond to agency invitation:", err);
+      throw err;
+    }
   }
 
   async getMarketingKits(): Promise<CreatorMarketingKit[]> {

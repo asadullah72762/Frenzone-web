@@ -121,6 +121,8 @@ export type CreatorPayoutItem = {
 };
 
 export type CreatorAgencyContract = {
+  hasAgency: boolean;
+  invitationId?: string;
   agencyId: string;
   agencyName: string;
   agencyLogo?: string;
@@ -128,7 +130,9 @@ export type CreatorAgencyContract = {
   managerEmail: string;
   contractStartDate: string;
   commissionSplitRate: number;
-  status: "ACTIVE" | "PENDING_TRANSFER" | "TERMINATED";
+  status: "ACTIVE" | "PENDING_CONSENT" | "PENDING_ADMIN" | "PENDING_TRANSFER" | "TERMINATED" | "NONE";
+  country?: string;
+  website?: string;
 };
 
 export type CreatorMarketingKit = {

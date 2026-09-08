@@ -19,6 +19,8 @@ import type {
   AgencyCommissionReport,
   AgencyInvoice,
   AgencyPayoutAccount,
+  CreatorSearchResult,
+  AgencyReferralData,
 } from "@/types/agency";
 import type { SupportTicket } from "@/types/creator";
 
@@ -127,8 +129,48 @@ export class AgencyService {
     throw new Error("Failed to load agency performance");
   }
 
+  async searchCreators(query: string, page = 1, limit = 10): Promise<{ creators: CreatorSearchResult[]; total: number }> {
+    try {
+      const res = await apiClient.get<{ success: boolean; creators: CreatorSearchResult[]; total: number }>(
+        `/agency/creators/search?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}`
+      );
+      if (res?.creators) {
+        return {
+          creators: res.creators,
+          total: res.total || res.creators.length,
+        };
+      }
+      return { creators: [], total: 0 };
+    } catch (err) {
+      console.error("Failed to search creators:", err);
+      return { creators: [], total: 0 };
+    }
+  }
+
   async getCommissions(): Promise<AgencyCommissionReport> {
-    return Promise.resolve(agencyCommissionsMock);
+    try {
+      const res = await apiClient.get<{ success: boolean; data: AgencyCommissionReport }>("/agency/commissions");
+      if (res?.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.error("Failed to load agency commissions:", err);
+      throw err;
+    }
+    throw new Error("Failed to load agency commissions");
+  }
+
+  async getReferrals(): Promise<AgencyReferralData> {
+    try {
+      const res = await apiClient.get<{ success: boolean; data: AgencyReferralData }>("/agency/referrals");
+      if (res?.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.error("Failed to load agency referrals:", err);
+      throw err;
+    }
+    throw new Error("Failed to load agency referrals");
   }
 
   async getInvoices(): Promise<AgencyInvoice[]> {

@@ -28,7 +28,13 @@ export default function AgencyCreatorsPage() {
       header: "Creator Name & Handle",
       render: (item) => (
         <div className="flex items-center space-x-3">
-          <img src={item.avatarUrl} alt={item.name} className="h-9 w-9 rounded-full object-cover border border-border" />
+          {item.avatarUrl ? (
+            <img src={item.avatarUrl} alt={item.name} className="h-9 w-9 rounded-full object-cover border border-border" />
+          ) : (
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-soft text-brand font-semibold text-xs border border-border">
+              {(item.name || item.username || "C").slice(0, 2).toUpperCase()}
+            </div>
+          )}
           <div>
             <p className="font-semibold text-text-primary">{item.name}</p>
             <p className="text-xs text-text-muted">@{item.username}</p>
@@ -93,11 +99,17 @@ export default function AgencyCreatorsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="w-full max-w-lg rounded-2xl bg-surface p-6 shadow-modal border border-border space-y-4">
             <div className="flex items-center space-x-4 border-b border-border pb-4">
-              <img
-                src={selectedCreator.avatarUrl}
-                alt={selectedCreator.name}
-                className="h-14 w-14 rounded-full object-cover border-2 border-brand/20"
-              />
+              {selectedCreator.avatarUrl ? (
+                <img
+                  src={selectedCreator.avatarUrl}
+                  alt={selectedCreator.name}
+                  className="h-14 w-14 rounded-full object-cover border-2 border-brand/20 shrink-0"
+                />
+              ) : (
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-soft text-brand font-bold text-lg border-2 border-brand/20 shrink-0">
+                  {(selectedCreator.name || selectedCreator.username || "C").slice(0, 2).toUpperCase()}
+                </div>
+              )}
               <div>
                 <h3 className="text-lg font-bold text-text-primary">{selectedCreator.name}</h3>
                 <p className="text-xs text-text-muted">@{selectedCreator.username} • Joined {selectedCreator.joinedDate}</p>

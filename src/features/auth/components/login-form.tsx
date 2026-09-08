@@ -81,7 +81,7 @@ export function LoginForm() {
       <div className="rounded-xl border border-brand/20 bg-gradient-to-r from-violet-50 via-indigo-50 to-pink-50 p-3.5 flex items-center space-x-3">
         <ShieldCheck className="h-5 w-5 text-brand shrink-0" />
         <p className="text-xs font-semibold text-text-secondary">
-          Enter your registered Frenzone email and password to authenticate directly with the Node.js backend server.
+          Enter your registered Frenzone email and password to authenticate securely via Firebase Authentication.
         </p>
       </div>
 

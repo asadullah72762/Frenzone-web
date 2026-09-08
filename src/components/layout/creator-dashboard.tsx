@@ -33,6 +33,7 @@ export function CreatorDashboardView({
 }) {
   const [copied, setCopied] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
+  const [showLiveModal, setShowLiveModal] = useState(false);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(data.referralLink);
@@ -83,11 +84,9 @@ export function CreatorDashboardView({
           <Button variant="secondary" size="sm" onClick={() => setShowQrModal(true)} icon={<QrCode className="h-4 w-4" />}>
             Share QR Code
           </Button>
-          <Link href="/creator/streams">
-            <Button variant="primary" size="sm" icon={<Video className="h-4 w-4" />}>
-              Go Live Studio
-            </Button>
-          </Link>
+          <Button variant="primary" size="sm" onClick={() => setShowLiveModal(true)} icon={<Video className="h-4 w-4" />}>
+            Go Live Studio
+          </Button>
         </div>
       </div>
 
@@ -259,6 +258,77 @@ export function CreatorDashboardView({
             <Button variant="primary" className="w-full" onClick={() => setShowQrModal(false)}>
               Close Preview
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Go Live Studio Broadcaster Setup Modal */}
+      {showLiveModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-modal border border-border text-left space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div className="flex items-center space-x-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/10 text-brand">
+                  <Video className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-text-primary">Go Live Studio</h3>
+                  <p className="text-xs text-text-secondary">OBS, vMix & Mobile Broadcaster Connection</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLiveModal(false)}
+                className="text-text-muted hover:text-text-primary text-sm font-bold p-1 cursor-pointer"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-text-secondary leading-relaxed">
+              Broadcast live video to your Frenzone community. Stream from your desktop using OBS Studio, Streamlabs, or vMix via RTMP, or broadcast on the go with the Frenzone Mobile app.
+            </p>
+
+            <div className="space-y-3 rounded-xl border border-border bg-surface-muted/60 p-3.5 text-xs">
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-text-muted">RTMP Ingest Server</label>
+                <div className="mt-1 flex items-center justify-between rounded-lg border border-border bg-surface px-3 py-1.5 font-mono text-text-primary">
+                  <span className="truncate">rtmps://live.frenzone.net/live</span>
+                  <button
+                    type="button"
+                    onClick={() => navigator.clipboard.writeText("rtmps://live.frenzone.net/live")}
+                    className="text-brand hover:underline font-sans font-semibold text-[11px] ml-2 cursor-pointer"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Stream Key</label>
+                <div className="mt-1 flex items-center justify-between rounded-lg border border-border bg-surface px-3 py-1.5 font-mono text-text-primary">
+                  <span>live_••••••••••••••••</span>
+                  <span className="text-[10px] text-text-muted font-sans font-medium">Auto-assigned</span>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2 text-[11px] text-text-secondary pt-1">
+                <ShieldCheck className="h-4 w-4 text-brand shrink-0" />
+                <span>Agora SD-RTN Real-Time Interactive Streaming</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 pt-2">
+              <Link href="/creator/compliance" className="flex-1" onClick={() => setShowLiveModal(false)}>
+                <Button variant="secondary" className="w-full text-xs">
+                  Compliance Rules
+                </Button>
+              </Link>
+              <Button variant="primary" className="flex-1 text-xs" onClick={() => setShowLiveModal(false)}>
+                Done
+              </Button>
+            </div>
           </div>
         </div>
       )}

@@ -1,22 +1,64 @@
 "use client";
 
-import { DollarSign, ShieldCheck, FileText, Download } from "lucide-react";
+import { DollarSign, ShieldCheck, FileText, Download, RefreshCw, AlertCircle, Users } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
 import { Button } from "@/components/ui/button";
 import { agencyService } from "@/features/agency/services/agency.service";
 import { useAsyncData } from "@/lib/hooks/use-async-data";
-import { agencyCommissionsMock } from "@/mocks/agency-full.mock";
 import { formatCurrency } from "@/lib/formatting";
+import { StatCardSkeleton, CardSkeleton } from "@/components/ui/skeleton";
 
 export default function AgencyCommissionsPage() {
-  const { data: comm, isLoading } = useAsyncData(
+  const { data: comm, isLoading, error, refetch } = useAsyncData(
     () => agencyService.getCommissions(),
     [],
     400
   );
 
-  const data = comm || agencyCommissionsMock;
+  const data = comm || {
+    period: "Current Billing Cycle",
+    grossRevenue: { amount: "0.00", currency: "USD" },
+    agencyCommissionRatePercentage: 20,
+    grossCommissionAmount: { amount: "0.00", currency: "USD" },
+    platformFees: { amount: "0.00", currency: "USD" },
+    netPayoutAmount: { amount: "0.00", currency: "USD" },
+    breakdownPerCreator: [],
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="border-b border-border pb-4 space-y-2">
+          <div className="h-8 w-64 animate-pulse rounded bg-surface-muted" />
+          <div className="h-4 w-96 animate-pulse rounded bg-surface-muted" />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+        </div>
+        <CardSkeleton />
+      </div>
+    );
+  }
+
+  if (error && !comm) {
+    return (
+      <div className="rounded-xl border border-destructive/20 bg-destructive-soft/10 p-8 text-center max-w-lg mx-auto mt-12">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+          <AlertCircle className="h-6 w-6" />
+        </div>
+        <h3 className="text-lg font-bold text-text-primary">Unable to load Commission Statements</h3>
+        <p className="text-sm text-text-muted mt-1 mb-6">
+          {error.message || "An unexpected error occurred while fetching commission data."}
+        </p>
+        <Button variant="primary" onClick={refetch} icon={<RefreshCw className="h-4 w-4" />}>
+          Try Again
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -66,28 +108,43 @@ export default function AgencyCommissionsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-border text-xs uppercase font-semibold text-text-muted bg-surface-muted/50">
-                <tr>
-                  <th className="px-4 py-3">Creator Name</th>
-                  <th className="px-4 py-3">Gross Earned</th>
-                  <th className="px-4 py-3">Agency Split %</th>
-                  <th className="px-4 py-3 text-right">Agency Commission Earned</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-subtle">
-                {data.breakdownPerCreator.map((row) => (
-                  <tr key={row.creatorId} className="hover:bg-surface-muted/30 transition-colors">
-                    <td className="px-4 py-3 font-semibold text-text-primary">{row.creatorName}</td>
-                    <td className="px-4 py-3 text-text-secondary">{formatCurrency(row.grossEarned)}</td>
-                    <td className="px-4 py-3 text-text-secondary">20%</td>
-                    <td className="px-4 py-3 text-right font-bold text-success">{formatCurrency(row.commissionEarned)}</td>
+          {data.breakdownPerCreator.length === 0 ? (
+            <div className="py-12 text-center">
+              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-surface-muted text-text-muted">
+                <Users className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-semibold text-text-primary">No creator earnings recorded yet</p>
+              <p className="text-xs text-text-muted mt-1 max-w-xs mx-auto">
+                Once affiliated creators in your roster complete live streams, revenue splits will be automatically calculated and displayed here.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-border text-xs uppercase font-semibold text-text-muted bg-surface-muted/50">
+                  <tr>
+                    <th className="px-4 py-3">Creator Name</th>
+                    <th className="px-4 py-3">Gross Earned</th>
+                    <th className="px-4 py-3">Agency Split %</th>
+                    <th className="px-4 py-3 text-right">Agency Commission Earned</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-border-subtle">
+                  {data.breakdownPerCreator.map((row) => (
+                    <tr key={row.creatorId} className="hover:bg-surface-muted/30 transition-colors">
+                      <td className="px-4 py-3 font-semibold text-text-primary">
+                        {row.creatorName}
+                        <span className="block text-xs font-normal text-text-muted">@{row.username}</span>
+                      </td>
+                      <td className="px-4 py-3 text-text-secondary">{formatCurrency(row.grossEarned)}</td>
+                      <td className="px-4 py-3 text-text-secondary">{row.agencyCommissionRatePercentage || 20}%</td>
+                      <td className="px-4 py-3 text-right font-bold text-success">{formatCurrency(row.commissionEarned)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

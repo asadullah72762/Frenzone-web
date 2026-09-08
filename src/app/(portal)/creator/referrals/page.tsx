@@ -52,15 +52,17 @@ export default function CreatorReferralsPage() {
       header: "Referred Creator",
       render: (item) => (
         <div className="flex items-center space-x-3">
-          <img
-            src={item.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
-            alt={item.referredUser}
-            className="h-9 w-9 rounded-full object-cover border border-border"
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).src =
-                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
-            }}
-          />
+          {item.avatarUrl ? (
+            <img
+              src={item.avatarUrl}
+              alt={item.referredUser}
+              className="h-9 w-9 rounded-full object-cover border border-border"
+            />
+          ) : (
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-soft text-brand font-semibold text-xs border border-border">
+              {(item.referredUser || "C").slice(0, 2).toUpperCase()}
+            </div>
+          )}
           <span className="font-semibold text-text-primary">{item.referredUser}</span>
         </div>
       ),

@@ -202,6 +202,7 @@ export const creatorPayoutsMock: CreatorPayoutItem[] = [
 ];
 
 export const creatorAgencyContractMock: CreatorAgencyContract = {
+  hasAgency: true,
   agencyId: "ag-4012",
   agencyName: "Apex Creator Network",
   managerName: "David Sterling",

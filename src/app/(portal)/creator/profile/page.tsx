@@ -75,8 +75,12 @@ export default function CreatorProfilePage() {
       errors.fullName = "Full name must not exceed 100 characters.";
     }
 
-    if (formData.phone && formData.phone.length > 30) {
-      errors.phone = "Phone number must not exceed 30 characters.";
+    if (formData.phone) {
+      if (formData.phone.length > 30) {
+        errors.phone = "Phone number must not exceed 30 characters.";
+      } else if (!/^[+0-9\s().-]{5,30}$/.test(formData.phone)) {
+        errors.phone = "Invalid phone number format.";
+      }
     }
 
     if (formData.bio && formData.bio.length > 1000) {
@@ -87,16 +91,41 @@ export default function CreatorProfilePage() {
       errors.country = "Country must not exceed 100 characters.";
     }
 
-    if (formData.instagram && formData.instagram.length > 200) {
-      errors.instagram = "Instagram handle or URL must not exceed 200 characters.";
+    const isValidSocial = (val: string) => {
+      if (!val) return true;
+      if (val.startsWith("http://") || val.startsWith("https://")) {
+        try {
+          const u = new URL(val);
+          return u.protocol === "http:" || u.protocol === "https:";
+        } catch {
+          return false;
+        }
+      }
+      return /^@?[a-zA-Z0-9._-]+$/.test(val);
+    };
+
+    if (formData.instagram) {
+      if (formData.instagram.length > 200) {
+        errors.instagram = "Instagram handle or URL must not exceed 200 characters.";
+      } else if (!isValidSocial(formData.instagram)) {
+        errors.instagram = "Please enter a valid Instagram handle or URL.";
+      }
     }
 
-    if (formData.tiktok && formData.tiktok.length > 200) {
-      errors.tiktok = "TikTok handle or URL must not exceed 200 characters.";
+    if (formData.tiktok) {
+      if (formData.tiktok.length > 200) {
+        errors.tiktok = "TikTok handle or URL must not exceed 200 characters.";
+      } else if (!isValidSocial(formData.tiktok)) {
+        errors.tiktok = "Please enter a valid TikTok handle or URL.";
+      }
     }
 
-    if (formData.youtube && formData.youtube.length > 200) {
-      errors.youtube = "YouTube channel URL must not exceed 200 characters.";
+    if (formData.youtube) {
+      if (formData.youtube.length > 200) {
+        errors.youtube = "YouTube channel URL must not exceed 200 characters.";
+      } else if (!isValidSocial(formData.youtube)) {
+        errors.youtube = "Please enter a valid YouTube handle or URL.";
+      }
     }
 
     setValidationErrors(errors);
@@ -242,11 +271,17 @@ export default function CreatorProfilePage() {
             {/* Avatar Row */}
             <div className="flex items-center space-x-4 pb-2">
               <div className="relative group">
-                <img
-                  src={avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
-                  alt={formData.fullName || "Creator Avatar"}
-                  className="h-16 w-16 rounded-full object-cover border-2 border-brand/20 shadow-sm"
-                />
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={formData.fullName || "Creator Avatar"}
+                    className="h-16 w-16 rounded-full object-cover border-2 border-brand/20 shadow-sm"
+                  />
+                ) : (
+                  <div className="h-16 w-16 rounded-full bg-gradient-to-br from-brand to-brand/70 flex items-center justify-center border-2 border-brand/20 shadow-sm text-white font-extrabold text-xl select-none">
+                    {formData.fullName?.trim()?.charAt(0)?.toUpperCase() || profile?.username?.trim()?.charAt(0)?.toUpperCase() || "C"}
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}

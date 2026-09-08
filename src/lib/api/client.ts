@@ -1,12 +1,32 @@
 import type { ApiError } from "./types";
+import { auth } from "@/lib/firebase/config";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
+/**
+ * Resolves a valid authentication token.
+ * Dynamically queries Firebase Auth SDK to ensure tokens are kept fresh.
+ */
+async function getAuthToken(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+
+  try {
+    if (auth.currentUser) {
+      const freshToken = await auth.currentUser.getIdToken();
+      if (freshToken) {
+        localStorage.setItem("frenzone_token", freshToken);
+        return freshToken;
+      }
+    }
+  } catch (err) {
+    console.warn("Could not retrieve fresh Firebase token:", err);
+  }
+
+  return localStorage.getItem("frenzone_token") || localStorage.getItem("token");
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("frenzone_token") || localStorage.getItem("token")
-      : null;
+  const token = await getAuthToken();
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -48,10 +68,7 @@ export const apiClient = {
       method: "DELETE",
     }),
   postFormData: async <T>(path: string, formData: FormData): Promise<T> => {
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("frenzone_token") || localStorage.getItem("token")
-        : null;
+    const token = await getAuthToken();
 
     const response = await fetch(`${baseUrl}${path}`, {
       method: "POST",

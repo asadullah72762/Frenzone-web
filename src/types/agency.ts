@@ -87,6 +87,8 @@ export type AgencyCommissionReport = {
   breakdownPerCreator: {
     creatorId: string;
     creatorName: string;
+    username?: string;
+    agencyCommissionRatePercentage?: number;
     grossEarned: Money;
     commissionEarned: Money;
   }[];
@@ -109,4 +111,24 @@ export type AgencyPayoutAccount = {
   swiftBic: string;
   currency: string;
   payoutSchedule: "MONTHLY_15TH" | "BI_WEEKLY";
+};
+
+export type CreatorSearchResult = {
+  id: string;
+  username: string;
+  name: string;
+  email: string;
+  avatarUrl: string;
+  category: string;
+  relationshipStatus: "none" | "pending_consent" | "pending_admin" | "connected" | "unavailable";
+  isInvitedByMe: boolean;
+  canInvite: boolean;
+};
+
+export type AgencyReferralData = {
+  referralCode: string;
+  referralLink: string;
+  totalReferred: number;
+  qualifiedCount: number;
+  commissionBonusPercentage: number;
 };

@@ -1,3 +1,9 @@
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
+import { auth } from "@/lib/firebase/config";
 import { apiClient } from "@/lib/api/client";
 import type { Session } from "@/types/auth";
 
@@ -38,41 +44,120 @@ export const authService = {
         isAgencyMember: Boolean(res.user.isAgencyMember),
         creatorStatus: res.user.creatorStatus,
         agencyMembership: res.user.agencyMembership,
+        profilePicture: res.user.profilePicture,
       },
-      expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      expiresAt: new Date(Date.now() + 3600000).toISOString(),
     };
   },
+
   login: async (input: LoginInput): Promise<AuthResponse> => {
-    const res = await apiClient.post<AuthResponse>("/auth/login", input);
-    if (res?.token || res?.jwt) {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("frenzone_token", res.token || res.jwt || "");
-        localStorage.setItem("token", res.token || res.jwt || "");
-        if (res.user) {
-          localStorage.setItem("user", JSON.stringify(res.user));
-        }
-      }
-    }
-    return res;
-  },
-  signup: async (input: SignupInput): Promise<AuthResponse> => {
-    let res: AuthResponse;
     try {
-      res = await apiClient.post<AuthResponse>("/auth/web-signup", input);
-    } catch {
-      res = await apiClient.post<AuthResponse>("/auth/signup", input);
-    }
-    if (res?.token || res?.jwt) {
+      // 1. Authenticate against Firebase Authentication
+      const credential = await signInWithEmailAndPassword(
+        auth,
+        input.email.trim().toLowerCase(),
+        input.password
+      );
+      const token = await credential.user.getIdToken();
+
       if (typeof window !== "undefined") {
-        localStorage.setItem("frenzone_token", res.token || res.jwt || "");
-        localStorage.setItem("token", res.token || res.jwt || "");
-        if (res.user) {
-          localStorage.setItem("user", JSON.stringify(res.user));
-        }
+        localStorage.setItem("frenzone_token", token);
+        localStorage.setItem("token", token);
       }
+
+      // 2. Fetch authenticated MongoDB user profile
+      const session = await authService.getSession();
+      if (session.user && typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(session.user));
+      }
+
+      return {
+        success: true,
+        token,
+        user: session.user,
+      };
+    } catch (err: any) {
+      console.error("Firebase Login Error:", err);
+      let errorMsg = "Failed to sign in. Please check your credentials.";
+      if (
+        err.code === "auth/invalid-credential" ||
+        err.code === "auth/wrong-password" ||
+        err.code === "auth/user-not-found"
+      ) {
+        errorMsg = "Invalid email or password. Please verify your credentials.";
+      } else if (err.code === "auth/too-many-requests") {
+        errorMsg = "Access to this account has been temporarily disabled due to many failed login attempts. Please try again later.";
+      } else if (err.code === "auth/user-disabled") {
+        errorMsg = "This user account has been disabled.";
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      return {
+        success: false,
+        error: errorMsg,
+      };
     }
-    return res;
   },
-  logout: () => apiClient.post<void>("/auth/logout"),
+
+  signup: async (input: SignupInput): Promise<AuthResponse> => {
+    try {
+      // 1. Register identity in Firebase Authentication
+      const credential = await createUserWithEmailAndPassword(
+        auth,
+        input.email.trim().toLowerCase(),
+        input.password
+      );
+      const token = await credential.user.getIdToken();
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("frenzone_token", token);
+        localStorage.setItem("token", token);
+      }
+
+      // 2. Synchronize profile with MongoDB backend
+      const res = await apiClient.post<AuthResponse>("/auth/web-signup", {
+        ...input,
+        idToken: token,
+      });
+
+      if (res.user && typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(res.user));
+      }
+
+      return {
+        ...res,
+        token,
+      };
+    } catch (err: any) {
+      console.error("Firebase Signup Error:", err);
+      let errorMsg = "Registration failed. Please try again.";
+      if (err.code === "auth/email-already-in-use") {
+        errorMsg = "An account with this email address already exists. Please log in.";
+      } else if (err.code === "auth/weak-password") {
+        errorMsg = "Password should be at least 6 characters.";
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      return {
+        success: false,
+        error: errorMsg,
+      };
+    }
+  },
+
+  logout: async (): Promise<void> => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.warn("Firebase signOut error:", err);
+    }
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("frenzone_token");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+    }
+    await apiClient.post("/auth/logout").catch(() => {});
+  },
+
   refreshSession: () => apiClient.post<Session>("/auth/refresh"),
 };
