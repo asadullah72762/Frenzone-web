@@ -1,9 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { Flame, ArrowRight, Video, Building2, Play, Users, DollarSign, ShieldCheck, Heart, Crown } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Flame, ArrowRight, Video, Building2, Play, Users, DollarSign, ShieldCheck, Heart, Crown, Zap } from "lucide-react";
+import { authService } from "@/features/auth/services/auth.service";
 
 export function HomeHero() {
+  const router = useRouter();
+  const [demoLoading, setDemoLoading] = useState<"CREATOR" | "AGENCY" | null>(null);
+
+  const handleDemoLaunch = async (role: "CREATOR" | "AGENCY") => {
+    setDemoLoading(role);
+    try {
+      const res = await authService.loginDemo(role);
+      if (res.success) {
+        router.push(role === "CREATOR" ? "/creator" : "/agency");
+      }
+    } catch (err) {
+      console.error("Failed to launch demo:", err);
+    } finally {
+      setDemoLoading(null);
+    }
+  };
   return (
     <div className="relative overflow-hidden pt-12 pb-20 md:pt-16 md:pb-28">
       {/* Multi-Tone Gradient Glow Accent */}
@@ -53,6 +72,43 @@ export function HomeHero() {
               <Link href="/login" className="text-xs font-bold text-text-muted hover:text-brand transition-colors pt-2 sm:pt-0 sm:pl-2">
                 Sign In to Workspace →
               </Link>
+            </div>
+
+            {/* 1-Click Instant Live Demo Bar */}
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-2.5">
+              <div className="inline-flex items-center space-x-1.5 text-xs font-extrabold text-brand uppercase tracking-wider bg-brand-soft/60 px-3 py-1.5 rounded-xl border border-brand/20">
+                <Zap className="h-3.5 w-3.5 text-brand fill-brand shrink-0" />
+                <span>Instant Live Demo:</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleDemoLaunch("CREATOR")}
+                  disabled={demoLoading !== null}
+                  className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-surface border border-brand/30 hover:border-brand text-text-primary hover:text-brand text-xs font-bold transition-all shadow-xs hover:shadow cursor-pointer active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {demoLoading === "CREATOR" ? (
+                    <div className="h-3.5 w-3.5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Video className="h-3.5 w-3.5 text-brand shrink-0" />
+                  )}
+                  <span>{demoLoading === "CREATOR" ? "Launching..." : "Demo Creator Hub"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDemoLaunch("AGENCY")}
+                  disabled={demoLoading !== null}
+                  className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-surface border border-cta/30 hover:border-cta text-text-primary hover:text-cta text-xs font-bold transition-all shadow-xs hover:shadow cursor-pointer active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {demoLoading === "AGENCY" ? (
+                    <div className="h-3.5 w-3.5 border-2 border-cta border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Building2 className="h-3.5 w-3.5 text-cta shrink-0" />
+                  )}
+                  <span>{demoLoading === "AGENCY" ? "Launching..." : "Demo Agency Portal"}</span>
+                </button>
+              </div>
             </div>
 
             {/* Key Trust Pill Badges */}

@@ -137,13 +137,18 @@ export type CreatorAgencyContract = {
 
 export type CreatorMarketingKit = {
   id: string;
+  assetId?: string;
   title: string;
-  category: "Banner" | "Stream Overlay" | "Social Badge" | "Promo Video";
+  description?: string;
+  category: "Banner" | "Stream Overlay" | "Social Badge" | "Promo Video" | "Brand Guidelines";
   fileFormat: string;
   dimensions: string;
   fileSize: string;
+  fileName?: string;
   downloadUrl: string;
   previewUrl: string;
+  downloadCount?: number;
+  updatedAt?: string;
 };
 
 export type SupportTicketMessage = {

@@ -97,10 +97,14 @@ export type AgencyCommissionReport = {
 export type AgencyInvoice = {
   id: string;
   invoiceNumber: string;
+  period?: string;
   issueDate: string;
   dueDate: string;
   amount: Money;
+  grossRevenue?: Money;
   status: "PAID" | "PENDING" | "PROCESSING" | "OVERDUE";
+  payoutDate?: string | null;
+  wireReference?: string;
   downloadUrl: string;
 };
 
@@ -108,9 +112,37 @@ export type AgencyPayoutAccount = {
   bankName: string;
   accountHolderName: string;
   accountNumberMasked: string;
+  accountNumberLast4?: string;
   swiftBic: string;
+  routingNumber?: string;
+  iban?: string;
   currency: string;
   payoutSchedule: "MONTHLY_15TH" | "BI_WEEKLY";
+  status?: "UNREGISTERED" | "PENDING_VERIFICATION" | "ACTIVE" | "REJECTED";
+  verifiedAt?: string | null;
+  pendingPayout?: Money;
+  nextSettlementDate?: string;
+};
+
+export type UpdateAgencyPayoutAccountInput = {
+  bank_name: string;
+  account_holder_name: string;
+  account_number?: string;
+  swift_bic: string;
+  routing_number?: string;
+  iban?: string;
+  currency?: string;
+};
+
+export type AgencyDisbursementItem = {
+  id: string;
+  settlementDate: string;
+  amount: Money;
+  wireReference: string;
+  bankName: string;
+  accountNumberMasked: string;
+  period: string;
+  status: "COMPLETED" | "PROCESSING";
 };
 
 export type CreatorSearchResult = {

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Zap } from "lucide-react";
 import { Container } from "@/components/layout/container";
 export function MarketingHeader() {
   return (
@@ -12,6 +13,13 @@ export function MarketingHeader() {
           <Link href="/creators" className="hover:text-white transition-colors">Creators</Link>
           <Link href="/agencies" className="hover:text-white transition-colors">Agencies</Link>
           <Link href="/coins" className="hover:text-white transition-colors">Coins</Link>
+          <Link
+            href="/login"
+            className="flex items-center space-x-1.5 bg-white/15 hover:bg-white/25 text-white px-3 py-1 rounded-full text-xs font-bold transition-all border border-white/20"
+          >
+            <Zap className="h-3 w-3 fill-amber-300 text-amber-300" />
+            <span>Live Demo</span>
+          </Link>
         </nav>
         <div className="flex items-center space-x-3">
           <Link

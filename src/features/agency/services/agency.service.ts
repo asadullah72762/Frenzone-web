@@ -6,8 +6,6 @@ import {
   agencyInvitationsMock,
   agencyPerformanceMock,
   agencyCommissionsMock,
-  agencyInvoicesMock,
-  agencyPayoutAccountMock,
   agencySupportTicketsMock,
 } from "@/mocks/agency-full.mock";
 import type {
@@ -19,9 +17,12 @@ import type {
   AgencyCommissionReport,
   AgencyInvoice,
   AgencyPayoutAccount,
+  UpdateAgencyPayoutAccountInput,
+  AgencyDisbursementItem,
   CreatorSearchResult,
   AgencyReferralData,
 } from "@/types/agency";
+import type { Money } from "@/types/common";
 import type { SupportTicket } from "@/types/creator";
 
 export class AgencyService {
@@ -173,12 +174,102 @@ export class AgencyService {
     throw new Error("Failed to load agency referrals");
   }
 
-  async getInvoices(): Promise<AgencyInvoice[]> {
-    return Promise.resolve(agencyInvoicesMock);
+  async getInvoices(): Promise<{
+    invoices: AgencyInvoice[];
+    summary: { totalInvoiced: Money; totalSettled: Money; totalPending: Money };
+  }> {
+    try {
+      const res = await apiClient.get<{
+        success: boolean;
+        data: AgencyInvoice[];
+        summary: { totalInvoiced: Money; totalSettled: Money; totalPending: Money };
+      }>("/agency/invoices");
+      if (res?.data && Array.isArray(res.data)) {
+        return {
+          invoices: res.data,
+          summary: res.summary || {
+            totalInvoiced: { amount: "0.00", currency: "USD" },
+            totalSettled: { amount: "0.00", currency: "USD" },
+            totalPending: { amount: "0.00", currency: "USD" },
+          },
+        };
+      }
+    } catch (err) {
+      console.error("Failed to load agency invoices:", err);
+      throw err;
+    }
+    throw new Error("Failed to load agency invoices");
+  }
+
+  async downloadInvoice(invoiceId: string, invoiceNumber: string): Promise<void> {
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") || "" : "";
+      const res = await fetch(`${baseUrl}/agency/invoices/${invoiceId}/download`, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`Invoice download failed: ${res.status}`);
+      }
+
+      const blob = await res.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = `${invoiceNumber || "invoice"}.html`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      console.error("Failed to download invoice document:", err);
+      throw err;
+    }
   }
 
   async getPayoutAccount(): Promise<AgencyPayoutAccount> {
-    return Promise.resolve(agencyPayoutAccountMock);
+    try {
+      const res = await apiClient.get<{ success: boolean; data: AgencyPayoutAccount }>("/agency/payout-account");
+      if (res?.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.error("Failed to load agency payout account:", err);
+      throw err;
+    }
+    throw new Error("Failed to load agency payout account");
+  }
+
+  async updatePayoutAccount(data: UpdateAgencyPayoutAccountInput): Promise<AgencyPayoutAccount> {
+    try {
+      const res = await apiClient.put<{ success: boolean; message: string; data: AgencyPayoutAccount }>(
+        "/agency/payout-account",
+        data
+      );
+      if (res?.data) {
+        return res.data;
+      }
+    } catch (err) {
+      console.error("Failed to update payout account:", err);
+      throw err;
+    }
+    throw new Error("Failed to update agency payout account");
+  }
+
+  async getDisbursements(): Promise<AgencyDisbursementItem[]> {
+    try {
+      const res = await apiClient.get<{ success: boolean; data: AgencyDisbursementItem[] }>("/agency/payouts/history");
+      if (res?.data && Array.isArray(res.data)) {
+        return res.data;
+      }
+    } catch (err) {
+      console.error("Failed to load disbursements:", err);
+      throw err;
+    }
+    return [];
   }
 
   async getSupportTickets(): Promise<SupportTicket[]> {

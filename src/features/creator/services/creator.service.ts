@@ -228,8 +228,50 @@ export class CreatorService {
     }
   }
 
-  async getMarketingKits(): Promise<CreatorMarketingKit[]> {
-    return Promise.resolve(creatorMarketingKitsMock);
+  async getMarketingKits(category?: string): Promise<CreatorMarketingKit[]> {
+    try {
+      const endpoint = category && category !== "All"
+        ? `/creator/marketing/kits?category=${encodeURIComponent(category)}`
+        : "/creator/marketing/kits";
+      const res = await apiClient.get<{ success: boolean; data: CreatorMarketingKit[] }>(endpoint);
+      if (res?.data && Array.isArray(res.data)) {
+        return res.data;
+      }
+    } catch (err) {
+      console.error("Failed to load marketing kits:", err);
+      throw err;
+    }
+    throw new Error("Failed to load creator marketing kits");
+  }
+
+  async downloadMarketingKit(assetId: string, fileName?: string): Promise<void> {
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") || "" : "";
+
+      const res = await fetch(`${baseUrl}/creator/marketing/kits/${encodeURIComponent(assetId)}/download`, {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`Download failed with status ${res.status}`);
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName || `${assetId}-brand-asset.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to download marketing asset:", err);
+      throw err;
+    }
   }
 
   async getSupportTickets(): Promise<SupportTicket[]> {
