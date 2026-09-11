@@ -210,8 +210,13 @@ export function ShareQrModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm p-3 sm:p-6 flex min-h-full items-center justify-center animate-in fade-in duration-200 touch-none"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm p-3 sm:p-6 flex min-h-full items-center justify-center animate-in fade-in duration-200"
       onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      onTouchEnd={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
         }
@@ -221,8 +226,9 @@ export function ShareQrModal({
       aria-labelledby="qr-modal-title"
     >
       <div
-        className="relative w-full max-w-md my-auto rounded-2xl bg-surface shadow-2xl border border-border flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3.5rem)] text-center overflow-hidden animate-in zoom-in-95 duration-150 touch-auto"
+        className="relative w-full max-w-md my-auto rounded-2xl bg-surface shadow-2xl border border-border flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3.5rem)] text-center overflow-hidden animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
       >
         {/* Modal Header (Pinned) */}
         <div className="relative px-5 sm:px-6 pt-5 pb-3 border-b border-border/50 shrink-0 text-center">
