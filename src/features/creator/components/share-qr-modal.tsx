@@ -97,7 +97,7 @@ export function ShareQrModal({
           dark: "#0f172a", // Deep slate for maximum contrast and reliability
           light: "#ffffff",
         },
-      }).catch((err) => {
+      }).catch((err: any) => {
         console.error("Canvas QR Code generation error:", err);
       });
     }
@@ -142,15 +142,24 @@ export function ShareQrModal({
   const handleDownloadQr = async () => {
     if (!activeUrl || !data?.referralCode) return;
     try {
-      // Generate crisp 1024x1024 printable QR code
-      const highResDataUrl = await QRCode.toDataURL(activeUrl, {
-        errorCorrectionLevel: "H",
-        width: 1024,
-        margin: 3,
-        color: {
-          dark: "#0f172a",
-          light: "#ffffff",
-        },
+      // Generate crisp 1024x1024 printable QR code with explicit type annotations
+      const highResDataUrl = await new Promise<string>((resolve, reject) => {
+        QRCode.toDataURL(
+          activeUrl,
+          {
+            errorCorrectionLevel: "H",
+            width: 1024,
+            margin: 3,
+            color: {
+              dark: "#0f172a",
+              light: "#ffffff",
+            },
+          },
+          (err: Error | null | undefined, url: string) => {
+            if (err) reject(err);
+            else resolve(url);
+          }
+        );
       });
 
       const downloadAnchor = document.createElement("a");
@@ -159,7 +168,7 @@ export function ShareQrModal({
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       document.body.removeChild(downloadAnchor);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to download high-res QR code:", err);
     }
   };
@@ -378,4 +387,4 @@ export function ShareQrModal({
       </div>
     </div>
   );
-}
+};
