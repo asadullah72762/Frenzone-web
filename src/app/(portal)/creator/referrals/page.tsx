@@ -11,6 +11,8 @@ import { creatorService } from "@/features/creator/services/creator.service";
 import { referralService } from "@/features/referrals/services/referral.service";
 import { useAsyncData } from "@/lib/hooks/use-async-data";
 import { formatCurrency } from "@/lib/formatting";
+import { ShareQrModal } from "@/features/creator/components/share-qr-modal";
+import { getCanonicalReferralUrl } from "@/lib/referral/referral-url";
 import type { CreatorReferralItem } from "@/types/creator";
 
 export default function CreatorReferralsPage() {
@@ -37,7 +39,7 @@ export default function CreatorReferralsPage() {
 
   const dataList = referrals || [];
   const code = liveCodeData?.referralCode || "";
-  const link = liveCodeData?.referralLink || (code ? `https://frenzone.live/join/${code}` : "");
+  const link = getCanonicalReferralUrl(code, liveCodeData?.referralLink || liveCodeData?.referralUrl);
 
   const handleCopy = () => {
     if (!link) return;
@@ -188,29 +190,13 @@ export default function CreatorReferralsPage() {
         />
       </div>
 
-      {/* QR Modal */}
-      {showQr && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-modal border border-border text-center">
-            <h3 className="text-lg font-bold text-text-primary">Referral QR Code</h3>
-            <p className="text-xs text-text-secondary mt-1">Code: {code}</p>
-            <div className="my-6 mx-auto flex h-52 w-52 items-center justify-center rounded-xl border-2 border-brand/20 bg-white p-3 shadow-inner">
-              {link ? (
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(link)}`}
-                  alt={`Referral QR for ${code}`}
-                  className="h-44 w-44 rounded-lg object-contain"
-                />
-              ) : (
-                <QrCode className="h-32 w-32 text-brand" />
-              )}
-            </div>
-            <Button variant="primary" className="w-full" onClick={() => setShowQr(false)}>
-              Close
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Production Share QR Modal */}
+      <ShareQrModal
+        isOpen={showQr}
+        onClose={() => setShowQr(false)}
+        initialCode={code}
+        initialLink={link}
+      />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api/client";
+import { getCanonicalReferralUrl } from "@/lib/referral/referral-url";
 import {
   creatorEarningsMock,
   creatorPayoutsMock,
@@ -7,6 +8,7 @@ import {
 } from "@/mocks/creator-full.mock";
 import type {
   CreatorDashboard,
+  CreatorActivityItem,
   CreatorProfile,
   CreatorPerformance,
   CreatorCompliance,
@@ -41,7 +43,7 @@ export class CreatorService {
           },
           totalViewers: d.totalViewers ?? (stats.followersCount || stats.totalLikes || 0),
           referralCode: d.referralCode || "",
-          referralLink: d.referralLink || "",
+          referralLink: getCanonicalReferralUrl(d.referralCode, d.referralLink),
           recentActivities: Array.isArray(d.recentActivities) ? d.recentActivities : [],
         };
       }
@@ -50,6 +52,19 @@ export class CreatorService {
       throw err;
     }
     throw new Error("Failed to load creator dashboard");
+  }
+
+  async getActivities(): Promise<CreatorActivityItem[]> {
+    try {
+      const res = await apiClient.get<{ success: boolean; activities?: CreatorActivityItem[] }>("/creator/activities");
+      if (res?.activities && Array.isArray(res.activities)) {
+        return res.activities;
+      }
+      return [];
+    } catch (err) {
+      console.error("Failed to load creator activities:", err);
+      return [];
+    }
   }
 
   async getProfile(): Promise<CreatorProfile> {

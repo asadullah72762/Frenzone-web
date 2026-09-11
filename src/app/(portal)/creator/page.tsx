@@ -43,5 +43,5 @@ export default function CreatorPage() {
     recentActivities: [],
   };
 
-  return <CreatorDashboardView data={data || defaultEmptyDashboard} isLoading={isLoading} />;
+  return <CreatorDashboardView data={data || defaultEmptyDashboard} isLoading={isLoading} onRefresh={refetch} />;
 }

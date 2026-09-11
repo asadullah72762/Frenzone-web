@@ -7,6 +7,7 @@ import { UserPlus, Eye, EyeOff, CheckCircle2, Gift, Video, Building2 } from "luc
 import { Button } from "@/components/ui/button";
 import { GoogleIcon } from "@/components/ui/google-icon";
 import { authService, type SignupInput } from "@/features/auth/services/auth.service";
+import { referralService } from "@/features/referrals/services/referral.service";
 
 export function SignupForm() {
   const router = useRouter();
@@ -32,6 +33,7 @@ export function SignupForm() {
       const ref = params.get("ref") || params.get("referralCode") || params.get("code");
       if (ref) {
         setFormData((prev) => ({ ...prev, referralCode: ref }));
+        referralService.trackScan(ref).catch(() => {});
       }
       const portal = params.get("portal") || params.get("type");
       if (portal?.toUpperCase() === "AGENCY") {

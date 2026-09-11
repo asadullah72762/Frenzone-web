@@ -3,6 +3,7 @@ import { Download, ExternalLink, Flame, ShieldCheck, Smartphone } from "lucide-r
 import { Container } from "@/components/layout/container";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ReferralScanTracker } from "@/features/referrals/components/referral-scan-tracker";
 
 type Props = { params: Promise<{ referralCode: string }> };
 
@@ -11,6 +12,7 @@ export default async function ReferralLandingPage({ params }: Props) {
 
   return (
     <Container className="py-16 md:py-24">
+      <ReferralScanTracker referralCode={referralCode} />
       <div className="mx-auto max-w-2xl text-center space-y-4">
         <span className="inline-flex items-center space-x-2 rounded-full bg-gradient-to-r from-violet-50 via-indigo-50 to-pink-50 px-4 py-1.5 text-xs font-bold text-brand border border-brand/20">
           <Flame className="h-4 w-4 text-brand fill-brand" />

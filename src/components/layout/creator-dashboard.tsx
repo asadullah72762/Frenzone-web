@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Clock,
   Video,
@@ -13,6 +13,9 @@ import {
   ShieldCheck,
   TrendingUp,
   Activity,
+  Coins,
+  Building2,
+  RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -22,21 +25,71 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { StatusBadge } from "@/components/feedback/status-badge";
 import { formatCurrency } from "@/lib/formatting";
 import { StatCardSkeleton, CardSkeleton } from "@/components/ui/skeleton";
-import type { CreatorDashboard } from "@/types/creator";
+import { ShareQrModal } from "@/features/creator/components/share-qr-modal";
+import { creatorService } from "@/features/creator/services/creator.service";
+import { getCanonicalReferralUrl } from "@/lib/referral/referral-url";
+import type { CreatorDashboard, CreatorActivityItem } from "@/types/creator";
+
+function getActivityIcon(type: CreatorActivityItem["type"]) {
+  switch (type) {
+    case "stream":
+      return { icon: Video, bg: "bg-purple-500/10", color: "text-purple-600 dark:text-purple-400" };
+    case "earning":
+      return { icon: Coins, bg: "bg-emerald-500/10", color: "text-emerald-600 dark:text-emerald-400" };
+    case "referral":
+      return { icon: Users, bg: "bg-blue-500/10", color: "text-blue-600 dark:text-blue-400" };
+    case "agency":
+      return { icon: Building2, bg: "bg-amber-500/10", color: "text-amber-600 dark:text-amber-400" };
+    case "compliance":
+      return { icon: ShieldCheck, bg: "bg-indigo-500/10", color: "text-indigo-600 dark:text-indigo-400" };
+    default:
+      return { icon: Activity, bg: "bg-brand/10", color: "text-brand" };
+  }
+}
 
 export function CreatorDashboardView({
   data,
   isLoading = false,
+  onRefresh,
 }: {
   data: CreatorDashboard;
   isLoading?: boolean;
+  onRefresh?: () => void;
 }) {
   const [copied, setCopied] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
   const [showLiveModal, setShowLiveModal] = useState(false);
+  const [activities, setActivities] = useState<CreatorActivityItem[]>(data?.recentActivities || []);
+  const [isRefreshingActivities, setIsRefreshingActivities] = useState(false);
+
+  useEffect(() => {
+    if (data?.recentActivities) {
+      setActivities(data.recentActivities);
+    }
+  }, [data?.recentActivities]);
+
+  const handleRefreshActivities = async () => {
+    setIsRefreshingActivities(true);
+    try {
+      if (onRefresh) {
+        onRefresh();
+      }
+      const updated = await creatorService.getActivities();
+      if (updated && updated.length > 0) {
+        setActivities(updated);
+      }
+    } catch (err) {
+      console.error("Failed to refresh activities:", err);
+    } finally {
+      setIsRefreshingActivities(false);
+    }
+  };
+
+  const canonicalReferralUrl = getCanonicalReferralUrl(data?.referralCode, data?.referralLink);
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(data.referralLink);
+    if (!canonicalReferralUrl) return;
+    navigator.clipboard.writeText(canonicalReferralUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -180,7 +233,7 @@ export function CreatorDashboardView({
                 <input
                   type="text"
                   readOnly
-                  value={data.referralLink}
+                  value={canonicalReferralUrl}
                   className="w-full rounded-lg border border-border bg-surface-muted px-3.5 py-2 text-xs font-mono text-text-primary outline-none"
                 />
                 <Button variant="secondary" size="sm" onClick={handleCopyLink} icon={copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}>
@@ -207,60 +260,89 @@ export function CreatorDashboardView({
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Activity className="h-5 w-5 text-brand" />
-              <CardTitle>Recent Stream & Account Activity</CardTitle>
+            <div className="flex items-center space-x-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/10 text-brand">
+                <Activity className="h-4 w-4" />
+              </div>
+              <div>
+                <CardTitle className="text-base font-bold text-text-primary">Recent Stream & Account Activity</CardTitle>
+                <CardDescription className="text-xs text-text-muted">
+                  Authoritative live activity from your streams, network referrals & agency
+                </CardDescription>
+              </div>
             </div>
-            <span className="text-xs font-medium text-text-muted">Updated in real-time</span>
+            <div className="flex items-center space-x-2">
+              <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live Feed
+              </span>
+              <button
+                type="button"
+                onClick={handleRefreshActivities}
+                disabled={isRefreshingActivities}
+                title="Refresh activities feed"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-text-muted hover:text-text-primary hover:bg-surface-muted transition-colors disabled:opacity-50 cursor-pointer"
+                aria-label="Refresh activity feed"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${isRefreshingActivities ? "animate-spin text-brand" : ""}`} />
+              </button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
-          {(!data.recentActivities || data.recentActivities.length === 0) ? (
-            <div className="py-8 text-center">
-              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-surface-muted text-text-muted">
-                <Activity className="h-5 w-5" />
+          {(!activities || activities.length === 0) ? (
+            <div className="py-10 text-center">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-surface-muted text-text-muted">
+                <Activity className="h-6 w-6" />
               </div>
-              <p className="text-sm font-medium text-text-primary">No recent activities yet</p>
+              <p className="text-sm font-semibold text-text-primary">No recent activities yet</p>
               <p className="text-xs text-text-muted mt-1 max-w-xs mx-auto">
                 Your completed live sessions, stream tips, and network referrals will appear here in real-time.
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-border-subtle">
-              {data.recentActivities.map((act) => (
-                <div key={act.id} className="py-3.5 flex items-center justify-between first:pt-0 last:pb-0">
-                  <div className="flex items-center space-x-3">
-                    <div className="h-2 w-2 rounded-full bg-brand" />
-                    <div>
-                      <p className="text-sm font-medium text-text-primary">{act.title}</p>
-                      <span className="text-xs text-text-muted">{act.timestamp}</span>
+            <div className="space-y-1.5">
+              {activities.map((act) => {
+                const iconConfig = getActivityIcon(act.type);
+                const IconComponent = iconConfig.icon;
+                return (
+                  <Link
+                    key={act.id}
+                    href={act.link || "/creator"}
+                    className="group flex items-center justify-between p-2.5 rounded-xl border border-transparent hover:border-border hover:bg-surface-muted/60 transition-all"
+                  >
+                    <div className="flex items-center space-x-3 min-w-0 pr-3">
+                      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${iconConfig.bg} ${iconConfig.color}`}>
+                        <IconComponent className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-text-primary truncate group-hover:text-brand transition-colors">
+                          {act.title}
+                        </p>
+                        {act.subtitle ? (
+                          <p className="text-xs text-text-muted truncate mt-0.5">{act.subtitle}</p>
+                        ) : null}
+                      </div>
                     </div>
-                  </div>
-                  <ArrowUpRight className="h-4 w-4 text-text-muted" />
-                </div>
-              ))}
+                    <div className="flex items-center space-x-3 shrink-0">
+                      <span className="text-xs font-medium text-text-muted whitespace-nowrap">{act.timestamp}</span>
+                      <ArrowUpRight className="h-4 w-4 text-text-muted group-hover:text-brand group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* QR Code Modal Preview */}
-      {showQrModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-modal border border-border text-center">
-            <h3 className="text-lg font-bold text-text-primary">Your Referral QR Code</h3>
-            <p className="text-xs text-text-secondary mt-1">Scan to open creator signup with code {data.referralCode}</p>
-
-            <div className="my-6 mx-auto flex h-48 w-48 items-center justify-center rounded-xl border-2 border-brand/20 bg-brand-soft/30 p-4">
-              <QrCode className="h-32 w-32 text-brand" />
-            </div>
-
-            <Button variant="primary" className="w-full" onClick={() => setShowQrModal(false)}>
-              Close Preview
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Share QR Code Production Modal */}
+      <ShareQrModal
+        isOpen={showQrModal}
+        onClose={() => setShowQrModal(false)}
+        initialCode={data?.referralCode}
+        initialLink={canonicalReferralUrl}
+      />
 
       {/* Go Live Studio Broadcaster Setup Modal */}
       {showLiveModal && (

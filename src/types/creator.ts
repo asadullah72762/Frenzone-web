@@ -1,5 +1,14 @@
 import type { ComplianceStatus, Money } from "./common";
 
+export type CreatorActivityItem = {
+  id: string;
+  title: string;
+  subtitle?: string;
+  timestamp: string;
+  type: "stream" | "earning" | "compliance" | "referral" | "agency";
+  link?: string;
+};
+
 export type CreatorDashboard = {
   liveHours: number;
   liveHoursTarget: number;
@@ -10,12 +19,7 @@ export type CreatorDashboard = {
   totalViewers: number;
   referralCode: string;
   referralLink: string;
-  recentActivities: {
-    id: string;
-    title: string;
-    timestamp: string;
-    type: "stream" | "earning" | "compliance" | "referral";
-  }[];
+  recentActivities: CreatorActivityItem[];
 };
 
 export type CreatorProfile = {
