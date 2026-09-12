@@ -45,7 +45,6 @@ export function ShareQrModal({
       }
     } catch (err: any) {
       if (initialCode) {
-        // Fallback to initial props if network transient
         const canonicalUrl = getCanonicalReferralUrl(initialCode, initialLink);
         setData({
           success: true,
@@ -81,11 +80,13 @@ export function ShareQrModal({
     }
   }, [isOpen, initialCode, initialLink]);
 
-  // Guaranteed canonical environment-aware URL used identically by both Copy Link and QR Code
-  const activeUrl = getCanonicalReferralUrl(
+  const rawUrl = getCanonicalReferralUrl(
     data?.referralCode || initialCode,
     data?.referralUrl || data?.referralLink || initialLink
   );
+
+  // Safely encode URL to prevent crashes from spaces or special characters in referral codes
+  const activeUrl = rawUrl ? encodeURI(rawUrl) : "";
 
   useEffect(() => {
     if (isOpen && activeUrl && canvasRef.current) {
@@ -94,10 +95,10 @@ export function ShareQrModal({
         width: 200,
         margin: 2,
         color: {
-          dark: "#0f172a", // Deep slate for maximum contrast and reliability
+          dark: "#0f172a",
           light: "#ffffff",
         },
-      }).catch((err) => {
+      }).catch((err: any) => {
         console.error("Canvas QR Code generation error:", err);
       });
     }
@@ -116,7 +117,6 @@ export function ShareQrModal({
 
   if (!isOpen) return null;
 
-  // Action 1: Copy Canonical Referral Link
   const handleCopyLink = async () => {
     if (!activeUrl) return;
     try {
@@ -138,33 +138,39 @@ export function ShareQrModal({
     }
   };
 
-  // Action 2: Download High-Resolution QR PNG Image
   const handleDownloadQr = async () => {
     if (!activeUrl || !data?.referralCode) return;
     try {
-      // Generate crisp 1024x1024 printable QR code
-      const highResDataUrl = await QRCode.toDataURL(activeUrl, {
-        errorCorrectionLevel: "H",
-        width: 1024,
-        margin: 3,
-        color: {
-          dark: "#0f172a",
-          light: "#ffffff",
-        },
+      const highResDataUrl = await new Promise<string>((resolve, reject) => {
+        QRCode.toDataURL(
+          activeUrl,
+          {
+            errorCorrectionLevel: "H",
+            width: 1024,
+            margin: 3,
+            color: {
+              dark: "#0f172a",
+              light: "#ffffff",
+            },
+          },
+          (err: Error | null | undefined, url: string) => {
+            if (err) reject(err);
+            else resolve(url);
+          }
+        );
       });
 
       const downloadAnchor = document.createElement("a");
       downloadAnchor.href = highResDataUrl;
-      downloadAnchor.download = `frenzone-creator-referral-${data.referralCode}.png`;
+      downloadAnchor.download = `frenzone-creator-referral-${data.referralCode.replace(/\s+/g, '-')}.png`;
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       document.body.removeChild(downloadAnchor);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to download high-res QR code:", err);
     }
   };
 
-  // Action 3: Native Web Share API with Clipboard Fallback
   const handleShare = async () => {
     if (!activeUrl) return;
     const shareData = {
@@ -202,7 +208,16 @@ export function ShareQrModal({
   return (
     <div
       className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm p-3 sm:p-6 flex min-h-full items-center justify-center animate-in fade-in duration-200"
-      onClick={onClose}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      onTouchEnd={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="qr-modal-title"
@@ -210,8 +225,9 @@ export function ShareQrModal({
       <div
         className="relative w-full max-w-md my-auto rounded-2xl bg-surface shadow-2xl border border-border flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3.5rem)] text-center overflow-hidden animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
       >
-        {/* Modal Header (Pinned) */}
+        {/* Modal Header */}
         <div className="relative px-5 sm:px-6 pt-5 pb-3 border-b border-border/50 shrink-0 text-center">
           <button
             type="button"
@@ -235,9 +251,8 @@ export function ShareQrModal({
           </p>
         </div>
 
-        {/* Modal Body (Scrollable with smooth overscroll) */}
+        {/* Modal Body */}
         <div className="overflow-y-auto px-5 sm:px-6 py-4 space-y-3.5 overscroll-contain flex-1">
-          {/* Loading State */}
           {isLoading && (
             <div className="py-10 space-y-3">
               <div className="mx-auto h-40 w-40 rounded-2xl bg-surface-muted animate-pulse border border-border flex items-center justify-center">
@@ -249,7 +264,6 @@ export function ShareQrModal({
             </div>
           )}
 
-          {/* Error State */}
           {!isLoading && error && (
             <div className="py-6 space-y-3 rounded-xl border border-danger/20 bg-danger/5 p-4">
               <AlertCircle className="mx-auto h-7 w-7 text-danger" />
@@ -260,10 +274,8 @@ export function ShareQrModal({
             </div>
           )}
 
-          {/* Ready State */}
           {!isLoading && !error && data && (
             <>
-              {/* Creator Monogram / Avatar Card */}
               <div className="flex items-center justify-between rounded-xl bg-surface-muted/60 px-3 py-2 border border-border">
                 <div className="flex items-center space-x-2.5">
                   {data.avatarUrl ? (
@@ -290,8 +302,8 @@ export function ShareQrModal({
                 </div>
               </div>
 
-              {/* High-Precision QR Canvas Container */}
-              <div className="mx-auto flex h-48 w-48 sm:h-52 sm:w-52 items-center justify-center rounded-2xl border-2 border-brand/20 bg-white p-2.5 shadow-inner">
+              {/* QR Canvas Container */}
+              <div className="mx-auto flex h-48 w-48 sm:h-52 sm:w-52 items-center justify-center rounded-2xl border-2 border-brand/20 bg-white p-2.5 shadow-inner select-none">
                 <canvas
                   ref={canvasRef}
                   className="h-44 w-44 sm:h-48 sm:w-48 rounded-xl object-contain"
@@ -299,7 +311,6 @@ export function ShareQrModal({
                 />
               </div>
 
-              {/* Canonical Link Display Bar */}
               <div className="space-y-1 text-left">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
                   Canonical Referral URL
@@ -336,7 +347,7 @@ export function ShareQrModal({
           )}
         </div>
 
-        {/* Modal Footer with Action Buttons (Pinned) */}
+        {/* Modal Footer */}
         {!isLoading && !error && data && (
           <div className="px-5 sm:px-6 py-3.5 border-t border-border/50 bg-surface/95 backdrop-blur-xs shrink-0">
             <div className="grid grid-cols-3 gap-2">
