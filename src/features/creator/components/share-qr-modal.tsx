@@ -97,7 +97,7 @@ export function ShareQrModal({
           dark: "#0f172a", // Deep slate for maximum contrast and reliability
           light: "#ffffff",
         },
-      }).catch((err: any) => {
+      }).catch((err) => {
         console.error("Canvas QR Code generation error:", err);
       });
     }
@@ -142,24 +142,15 @@ export function ShareQrModal({
   const handleDownloadQr = async () => {
     if (!activeUrl || !data?.referralCode) return;
     try {
-      // Generate crisp 1024x1024 printable QR code with explicit type annotations
-      const highResDataUrl = await new Promise<string>((resolve, reject) => {
-        QRCode.toDataURL(
-          activeUrl,
-          {
-            errorCorrectionLevel: "H",
-            width: 1024,
-            margin: 3,
-            color: {
-              dark: "#0f172a",
-              light: "#ffffff",
-            },
-          },
-          (err: Error | null | undefined, url: string) => {
-            if (err) reject(err);
-            else resolve(url);
-          }
-        );
+      // Generate crisp 1024x1024 printable QR code
+      const highResDataUrl = await QRCode.toDataURL(activeUrl, {
+        errorCorrectionLevel: "H",
+        width: 1024,
+        margin: 3,
+        color: {
+          dark: "#0f172a",
+          light: "#ffffff",
+        },
       });
 
       const downloadAnchor = document.createElement("a");
@@ -168,7 +159,7 @@ export function ShareQrModal({
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       document.body.removeChild(downloadAnchor);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed to download high-res QR code:", err);
     }
   };
@@ -211,16 +202,7 @@ export function ShareQrModal({
   return (
     <div
       className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm p-3 sm:p-6 flex min-h-full items-center justify-center animate-in fade-in duration-200"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
-      }}
-      onTouchEnd={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
-      }}
+      onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="qr-modal-title"
@@ -228,7 +210,6 @@ export function ShareQrModal({
       <div
         className="relative w-full max-w-md my-auto rounded-2xl bg-surface shadow-2xl border border-border flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3.5rem)] text-center overflow-hidden animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
-        onTouchStart={(e) => e.stopPropagation()}
       >
         {/* Modal Header (Pinned) */}
         <div className="relative px-5 sm:px-6 pt-5 pb-3 border-b border-border/50 shrink-0 text-center">
@@ -310,7 +291,7 @@ export function ShareQrModal({
               </div>
 
               {/* High-Precision QR Canvas Container */}
-              <div className="mx-auto flex h-48 w-48 sm:h-52 sm:w-52 items-center justify-center rounded-2xl border-2 border-brand/20 bg-white p-2.5 shadow-inner select-none pointer-events-auto">
+              <div className="mx-auto flex h-48 w-48 sm:h-52 sm:w-52 items-center justify-center rounded-2xl border-2 border-brand/20 bg-white p-2.5 shadow-inner">
                 <canvas
                   ref={canvasRef}
                   className="h-44 w-44 sm:h-48 sm:w-48 rounded-xl object-contain"
