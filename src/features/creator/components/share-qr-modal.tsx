@@ -79,6 +79,18 @@ export function ShareQrModal({
     }
   }, [isOpen, initialCode, initialLink]);
 
+  // Lock body scroll while modal is open (prevents mobile background scroll
+  // from swallowing the first tap when the modal reopens)
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
   const rawUrl = getCanonicalReferralUrl(
     data?.referralCode || initialCode,
     data?.referralUrl || data?.referralLink || initialLink
@@ -86,7 +98,6 @@ export function ShareQrModal({
 
   const activeUrl = rawUrl ? encodeURI(rawUrl) : "";
 
-  // Generate SVG string directly so it renders reliably everywhere
   useEffect(() => {
     if (isOpen && activeUrl) {
       QRCode.toString(
@@ -213,7 +224,7 @@ export function ShareQrModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm p-3 sm:p-6 flex min-h-full items-center justify-center animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm p-3 sm:p-6 flex items-center justify-center overflow-hidden animate-in fade-in duration-200"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
@@ -224,39 +235,39 @@ export function ShareQrModal({
       aria-labelledby="qr-modal-title"
     >
       <div
-        className="relative w-full max-w-md my-auto rounded-2xl bg-surface shadow-2xl border border-border flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3.5rem)] text-center overflow-hidden animate-in zoom-in-95 duration-150"
+        className="relative w-full max-w-md rounded-2xl bg-surface shadow-2xl border border-border flex flex-col max-h-[85vh] sm:max-h-[90vh] text-center overflow-hidden animate-in zoom-in-95 duration-150 my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="relative px-5 sm:px-6 pt-5 pb-3 border-b border-border/50 shrink-0 text-center">
+        <div className="relative px-4 sm:px-6 pt-4 pb-2.5 border-b border-border/50 shrink-0 text-center">
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-4 right-4 h-8 w-8 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-surface-muted transition-colors cursor-pointer"
+            className="absolute top-3 right-3 h-7 w-7 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-surface-muted transition-colors cursor-pointer touch-manipulation"
             aria-label="Close modal"
           >
             <X className="h-4 w-4" />
           </button>
 
-          <div className="inline-flex items-center space-x-1.5 rounded-full bg-brand-soft px-3 py-0.5 text-[11px] font-bold text-brand border border-brand/20 mb-1.5">
+          <div className="inline-flex items-center space-x-1.5 rounded-full bg-brand-soft px-2.5 py-0.5 text-[10px] font-bold text-brand border border-brand/20 mb-1">
             <Sparkles className="h-3 w-3" />
             <span>Frenzone Verified Creator</span>
           </div>
 
-          <h2 id="qr-modal-title" className="text-lg sm:text-xl font-bold tracking-tight text-text-primary">
+          <h2 id="qr-modal-title" className="text-base sm:text-lg font-bold tracking-tight text-text-primary">
             Share Your Referral QR Code
           </h2>
-          <p className="text-xs text-text-secondary max-w-xs mx-auto mt-0.5">
+          <p className="text-[11px] text-text-secondary max-w-xs mx-auto mt-0.5">
             Scan to instantly access your invite and unlock 10% lifetime referral bonus.
           </p>
         </div>
 
         {/* Modal Body */}
-        <div className="overflow-y-auto px-5 sm:px-6 py-4 space-y-3.5 overscroll-contain flex-1">
+        <div className="overflow-y-auto px-4 sm:px-6 py-3 space-y-3 overscroll-contain flex-1">
           {isLoading && (
-            <div className="py-10 space-y-3">
-              <div className="mx-auto h-40 w-40 rounded-2xl bg-surface-muted animate-pulse border border-border flex items-center justify-center">
-                <RefreshCw className="h-7 w-7 text-text-muted animate-spin" />
+            <div className="py-8 space-y-3">
+              <div className="mx-auto h-36 w-36 rounded-2xl bg-surface-muted animate-pulse border border-border flex items-center justify-center">
+                <RefreshCw className="h-6 w-6 text-text-muted animate-spin" />
               </div>
               <p className="text-xs text-text-muted animate-pulse">
                 Generating your verified referral QR...
@@ -266,7 +277,7 @@ export function ShareQrModal({
 
           {!isLoading && error && (
             <div className="py-6 space-y-3 rounded-xl border border-danger/20 bg-danger/5 p-4">
-              <AlertCircle className="mx-auto h-7 w-7 text-danger" />
+              <AlertCircle className="mx-auto h-6 w-6 text-danger" />
               <p className="text-xs font-semibold text-danger">{error}</p>
               <Button variant="secondary" size="sm" onClick={fetchReferralData} icon={<RefreshCw className="h-3.5 w-3.5" />}>
                 Try Again
@@ -282,59 +293,76 @@ export function ShareQrModal({
                     <img
                       src={data.avatarUrl}
                       alt={displayName}
-                      className="h-8 w-8 rounded-full object-cover border border-border"
+                      className="h-7 w-7 rounded-full object-cover border border-border"
                     />
                   ) : (
-                    <div className="h-8 w-8 rounded-full bg-brand text-white font-bold text-xs flex items-center justify-center">
+                    <div className="h-7 w-7 rounded-full bg-brand text-white font-bold text-xs flex items-center justify-center">
                       {initials}
                     </div>
                   )}
                   <div className="text-left">
                     <p className="text-xs font-bold text-text-primary leading-tight">{displayName}</p>
-                    <p className="text-[11px] text-text-muted mt-0.5">
+                    <p className="text-[10px] text-text-muted mt-0.5">
                       Code: <strong className="font-mono text-brand">{data.referralCode}</strong>
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 text-[11px] font-semibold text-brand bg-brand-soft/70 px-2 py-0.5 rounded-md border border-brand/20">
-                  <ShieldCheck className="h-3.5 w-3.5" />
+                <div className="flex items-center gap-1 text-[10px] font-semibold text-brand bg-brand-soft/70 px-2 py-0.5 rounded-md border border-brand/20">
+                  <ShieldCheck className="h-3 w-3" />
                   <span>Verified</span>
                 </div>
               </div>
 
-              {/* SVG QR Code Container */}
-              <div className="mx-auto flex h-48 w-48 sm:h-52 sm:w-52 items-center justify-center rounded-2xl border-2 border-brand/20 bg-white p-2.5 shadow-inner select-none">
+              {/* SVG QR Code Container - single tap handler only (no duplicate touchend) */}
+              <div
+                onClick={handleDownloadQr}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleDownloadQr();
+                  }
+                }}
+                className="mx-auto flex h-40 w-40 sm:h-44 sm:w-44 items-center justify-center rounded-2xl border-2 border-brand/20 bg-white p-2 shadow-inner cursor-pointer hover:border-brand transition-colors group relative touch-manipulation select-none"
+                title="Click or tap to download QR code"
+              >
                 {qrSvgString ? (
                   <div
-                    className="h-44 w-44 sm:h-48 sm:w-48 rounded-xl flex items-center justify-center [&>svg]:h-full [&>svg]:w-full"
+                    className="h-36 w-36 sm:h-40 sm:w-40 rounded-xl flex items-center justify-center pointer-events-none [&>svg]:h-full [&>svg]:w-full"
                     dangerouslySetInnerHTML={{ __html: qrSvgString }}
                   />
                 ) : (
-                  <RefreshCw className="h-6 w-6 text-text-muted animate-spin" />
+                  <RefreshCw className="h-5 w-5 text-text-muted animate-spin" />
                 )}
+                <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center pointer-events-none">
+                  <span className="bg-black/70 text-white text-[10px] font-semibold px-2 py-1 rounded-md shadow">
+                    Tap to Download
+                  </span>
+                </div>
               </div>
 
               <div className="space-y-1 text-left">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
                   Canonical Referral URL
                 </label>
-                <div className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-mono text-text-primary">
-                  <span className="truncate mr-2 select-all">{activeUrl}</span>
+                <div className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-2.5 py-1.5 text-xs font-mono text-text-primary">
+                  <span className="truncate mr-2 select-all text-[11px]">{activeUrl}</span>
                   <button
                     type="button"
                     onClick={handleCopyLink}
-                    className="shrink-0 text-brand hover:text-brand-hover font-sans font-semibold text-xs transition-colors cursor-pointer flex items-center gap-1"
+                    className="shrink-0 text-brand hover:text-brand-hover font-sans font-semibold text-xs transition-colors cursor-pointer flex items-center gap-1 touch-manipulation"
                     title="Copy link to clipboard"
                   >
                     {copied ? (
                       <>
                         <Check className="h-3.5 w-3.5 text-success" />
-                        <span className="text-success text-[11px]">Copied</span>
+                        <span className="text-success text-[10px]">Copied</span>
                       </>
                     ) : (
                       <>
                         <Copy className="h-3.5 w-3.5" />
-                        <span className="text-[11px]">Copy</span>
+                        <span className="text-[10px]">Copy</span>
                       </>
                     )}
                   </button>
@@ -352,17 +380,17 @@ export function ShareQrModal({
 
         {/* Modal Footer */}
         {!isLoading && !error && data && (
-          <div className="px-5 sm:px-6 py-3.5 border-t border-border/50 bg-surface/95 backdrop-blur-xs shrink-0">
+          <div className="px-4 sm:px-6 py-3 border-t border-border/50 bg-surface/95 backdrop-blur-xs shrink-0">
             <div className="grid grid-cols-3 gap-2">
               <Button
                 type="button"
                 variant="secondary"
                 size="sm"
                 onClick={handleCopyLink}
-                className="w-full text-xs"
+                className="w-full text-xs py-1.5 h-8"
                 icon={copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
               >
-                {copied ? "Copied" : "Copy Link"}
+                {copied ? "Copied" : "Copy"}
               </Button>
 
               <Button
@@ -370,7 +398,7 @@ export function ShareQrModal({
                 variant="secondary"
                 size="sm"
                 onClick={handleDownloadQr}
-                className="w-full text-xs"
+                className="w-full text-xs py-1.5 h-8"
                 icon={<Download className="h-3.5 w-3.5" />}
               >
                 Download
@@ -381,7 +409,7 @@ export function ShareQrModal({
                 variant="primary"
                 size="sm"
                 onClick={handleShare}
-                className="w-full text-xs"
+                className="w-full text-xs py-1.5 h-8"
                 icon={<Share2 className="h-3.5 w-3.5" />}
               >
                 Share

@@ -104,8 +104,8 @@ export function PortalShell({ product, links, children }: Props) {
       {/* Main Layout */}
       <div className="flex-1">
         <Container className="grid gap-8 py-6 lg:grid-cols-[16rem_1fr] items-start">
-          {/* Separately Scrollable Sticky Sidebar Column */}
-          <aside className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto pr-2 pb-8 scrollbar-thin scrollbar-thumb-border hover:scrollbar-thumb-text-muted transition-colors flex flex-col justify-between">
+          {/* Separately Scrollable Sticky Sidebar Column (desktop only — normal stacked block on mobile) */}
+          <aside className="overflow-y-auto pr-2 pb-8 scrollbar-thin scrollbar-thumb-border hover:scrollbar-thumb-text-muted transition-colors flex flex-col gap-6 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:justify-between lg:gap-0">
             <div className="space-y-4">
               {/* Sidebar Header Badge */}
               <div className="px-3 pt-2">
@@ -255,4 +255,4 @@ export function PortalShell({ product, links, children }: Props) {
       </div>
     </div>
   );
-}
+};
