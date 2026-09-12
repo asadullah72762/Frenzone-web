@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Copy, Check, Download, Share2, X, AlertCircle, RefreshCw, Sparkles, ShieldCheck } from "lucide-react";
 import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
@@ -25,9 +25,8 @@ export function ShareQrModal({
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [shareFeedback, setShareFeedback] = useState<string | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [qrSvgString, setQrSvgString] = useState<string>("");
 
-  // Fetch or sync server-authoritative referral info
   const fetchReferralData = async () => {
     setIsLoading(true);
     setError(null);
@@ -85,26 +84,33 @@ export function ShareQrModal({
     data?.referralUrl || data?.referralLink || initialLink
   );
 
-  // Safely encode URL to prevent crashes from spaces or special characters in referral codes
   const activeUrl = rawUrl ? encodeURI(rawUrl) : "";
 
+  // Generate SVG string directly so it renders reliably everywhere
   useEffect(() => {
-    if (isOpen && activeUrl && canvasRef.current) {
-      QRCode.toCanvas(canvasRef.current, activeUrl, {
-        errorCorrectionLevel: "H",
-        width: 200,
-        margin: 2,
-        color: {
-          dark: "#0f172a",
-          light: "#ffffff",
+    if (isOpen && activeUrl) {
+      QRCode.toString(
+        activeUrl,
+        {
+          type: "svg",
+          errorCorrectionLevel: "H",
+          margin: 2,
+          color: {
+            dark: "#0f172a",
+            light: "#ffffff",
+          },
         },
-      }).catch((err: any) => {
-        console.error("Canvas QR Code generation error:", err);
-      });
+        (err, svgString) => {
+          if (err) {
+            console.error("SVG QR generation error:", err);
+          } else {
+            setQrSvgString(svgString);
+          }
+        }
+      );
     }
   }, [isOpen, activeUrl]);
 
-  // Handle keyboard Escape to dismiss
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
@@ -213,11 +219,6 @@ export function ShareQrModal({
           onClose();
         }
       }}
-      onTouchEnd={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
-      }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="qr-modal-title"
@@ -225,7 +226,6 @@ export function ShareQrModal({
       <div
         className="relative w-full max-w-md my-auto rounded-2xl bg-surface shadow-2xl border border-border flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3.5rem)] text-center overflow-hidden animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
-        onTouchStart={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
         <div className="relative px-5 sm:px-6 pt-5 pb-3 border-b border-border/50 shrink-0 text-center">
@@ -302,13 +302,16 @@ export function ShareQrModal({
                 </div>
               </div>
 
-              {/* QR Canvas Container */}
+              {/* SVG QR Code Container */}
               <div className="mx-auto flex h-48 w-48 sm:h-52 sm:w-52 items-center justify-center rounded-2xl border-2 border-brand/20 bg-white p-2.5 shadow-inner select-none">
-                <canvas
-                  ref={canvasRef}
-                  className="h-44 w-44 sm:h-48 sm:w-48 rounded-xl object-contain"
-                  aria-label={`QR Code for referral link ${activeUrl}`}
-                />
+                {qrSvgString ? (
+                  <div
+                    className="h-44 w-44 sm:h-48 sm:w-48 rounded-xl flex items-center justify-center [&>svg]:h-full [&>svg]:w-full"
+                    dangerouslySetInnerHTML={{ __html: qrSvgString }}
+                  />
+                ) : (
+                  <RefreshCw className="h-6 w-6 text-text-muted animate-spin" />
+                )}
               </div>
 
               <div className="space-y-1 text-left">
