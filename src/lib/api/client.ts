@@ -1,4 +1,4 @@
-import type { ApiError } from "./types";
+import { ApiError } from "./types";
 import { auth } from "@/lib/firebase/config";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -11,6 +11,9 @@ async function getAuthToken(): Promise<string | null> {
   if (typeof window === "undefined") return null;
 
   try {
+    if (typeof auth.authStateReady === "function") {
+      await auth.authStateReady();
+    }
     if (auth.currentUser) {
       const freshToken = await auth.currentUser.getIdToken();
       if (freshToken) {
@@ -34,18 +37,56 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...(init?.headers as Record<string, string>),
   };
 
-  const response = await fetch(`${baseUrl}${path}`, {
-    ...init,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${baseUrl}${path}`, {
+      ...init,
+      headers,
+    });
+  } catch (netErr: any) {
+    throw new ApiError(
+      netErr?.message || "Network error: Unable to connect to server.",
+      0,
+      { code: "NETWORK_ERROR" }
+    );
+  }
+
+  // Auto-recovery for 401 Unauthorized (expired token)
+  const isRetry = (init?.headers as Record<string, string>)?.[ "X-Retry" ] === "true";
+  if (response.status === 401 && !isRetry && typeof window !== "undefined") {
+    try {
+      if (auth.currentUser) {
+        const freshToken = await auth.currentUser.getIdToken(true);
+        if (freshToken) {
+          localStorage.setItem("frenzone_token", freshToken);
+          return await request<T>(path, {
+            ...init,
+            headers: {
+              ...(init?.headers as Record<string, string>),
+              Authorization: `Bearer ${freshToken}`,
+              "X-Retry": "true",
+            },
+          });
+        }
+      }
+    } catch {
+      // Refresh failed, proceed to standard error throw below
+    }
+  }
 
   const responseData = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw {
-      status: response.status,
-      message: responseData.error || responseData.message || "Something went wrong. Please try again.",
-    } satisfies ApiError;
+    const errorMsg =
+      responseData.error ||
+      responseData.message ||
+      `Request failed with status ${response.status}`;
+
+    throw new ApiError(errorMsg, response.status, {
+      code: responseData.code,
+      fieldErrors: responseData.fieldErrors,
+      data: responseData,
+    });
   }
 
   return responseData as T;
@@ -75,19 +116,25 @@ export const apiClient = {
   postFormData: async <T>(path: string, formData: FormData): Promise<T> => {
     const token = await getAuthToken();
 
-    const response = await fetch(`${baseUrl}${path}`, {
-      method: "POST",
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      body: formData,
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${baseUrl}${path}`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+    } catch (netErr: any) {
+      throw new ApiError(netErr?.message || "Upload network error.", 0, { code: "NETWORK_ERROR" });
+    }
 
     const responseData = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw {
-        status: response.status,
-        message: responseData.error || responseData.message || "Upload failed. Please try again.",
-      } satisfies ApiError;
+      const errorMsg = responseData.error || responseData.message || "Upload failed. Please try again.";
+      throw new ApiError(errorMsg, response.status, {
+        code: responseData.code,
+        data: responseData,
+      });
     }
 
     return responseData as T;

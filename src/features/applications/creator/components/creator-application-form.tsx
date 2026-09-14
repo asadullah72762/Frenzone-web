@@ -295,7 +295,7 @@ export function CreatorApplicationForm() {
   // ── 5. REJECTED STATE ──
   if (statusData?.status === "rejected") {
     const app = statusData.application;
-    const reviewNotes = app?.admin_review?.review_notes;
+    const reviewNotes = app?.admin_review?.more_info_requested_message || app?.admin_review?.review_notes;
 
     return (
       <div className="rounded-2xl border border-red-200 bg-gradient-to-br from-red-50 via-surface to-pink-50/30 p-8 shadow-sm">

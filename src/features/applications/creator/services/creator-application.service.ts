@@ -8,7 +8,28 @@ export type ApplicationStatusResponse = {
   success: boolean;
   hasApplied: boolean;
   status: "none" | "pending" | "more_info_required" | "approved" | "rejected" | "suspended";
-  application: any | null;
+  application: {
+    _id: string;
+    status: string;
+    legal_name?: { firstname: string; lastname: string };
+    contact_info?: { email: string; phone?: string };
+    demographics?: { country: string; language: string; dob?: string };
+    content_profile?: {
+      category: string;
+      primary_platform?: string;
+      social_links?: { instagram?: string; tiktok?: string; youtube?: string; twitter?: string };
+      estimated_audience_size?: number;
+    };
+    legal_agreements?: { terms_accepted: boolean; privacy_accepted: boolean; accepted_at?: string };
+    admin_review?: { reviewed_at?: string | null; more_info_requested_message?: string; review_notes?: string } | null;
+    createdAt?: string;
+    updatedAt?: string;
+  } | null;
+  complianceStatus?: string;
+  complianceMessage?: string;
+  liveAccess?: boolean;
+  isVerified?: boolean;
+  isLiveEligible?: boolean;
 };
 
 export const creatorApplicationService = {

@@ -47,8 +47,8 @@ export class CreatorService {
           recentActivities: Array.isArray(d.recentActivities) ? d.recentActivities : [],
         };
       }
-    } catch (err) {
-      console.error("Failed to load creator dashboard:", err);
+    } catch (err: any) {
+      console.error("Failed to load creator dashboard:", err?.message || err);
       throw err;
     }
     throw new Error("Failed to load creator dashboard");
@@ -61,8 +61,8 @@ export class CreatorService {
         return res.activities;
       }
       return [];
-    } catch (err) {
-      console.error("Failed to load creator activities:", err);
+    } catch (err: any) {
+      console.error("Failed to load creator activities:", err?.message || err);
       return [];
     }
   }
@@ -166,8 +166,8 @@ export class CreatorService {
       if (res?.data) {
         return res.data;
       }
-    } catch (err) {
-      console.error("Failed to load creator performance:", err);
+    } catch (err: any) {
+      console.error("Failed to load creator performance:", err?.message || err);
       throw err;
     }
     throw new Error("Failed to load creator performance");
@@ -180,8 +180,8 @@ export class CreatorService {
       if (res?.data) {
         return res.data;
       }
-    } catch (err) {
-      console.error("Failed to load creator compliance:", err);
+    } catch (err: any) {
+      console.error("Failed to load creator compliance:", err?.message || err);
       throw err;
     }
     throw new Error("Failed to load creator compliance");
@@ -194,9 +194,9 @@ export class CreatorService {
         return res.data;
       }
       return [];
-    } catch (err) {
-      console.error("Failed to load creator referrals:", err);
-      throw err;
+    } catch (err: any) {
+      console.warn("Notice: creator referrals query:", err?.message || err);
+      return [];
     }
   }
 
@@ -206,8 +206,8 @@ export class CreatorService {
       if (res?.data) {
         return res.data;
       }
-    } catch (err) {
-      console.error("Failed to load creator earnings:", err);
+    } catch (err: any) {
+      console.error("Failed to load creator earnings:", err?.message || err);
       throw err;
     }
     throw new Error("Failed to load creator earnings");
@@ -223,8 +223,8 @@ export class CreatorService {
       if (res?.data) {
         return res.data;
       }
-    } catch (err) {
-      console.error("Failed to load creator agency contract:", err);
+    } catch (err: any) {
+      console.error("Failed to load creator agency contract:", err?.message || err);
       throw err;
     }
     throw new Error("Failed to load agency partnership details");

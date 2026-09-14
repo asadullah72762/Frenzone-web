@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Link2, Copy, Check, QrCode, Users, DollarSign, Award } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Link2, Copy, Check, QrCode, Users, DollarSign, Award, AlertCircle, RefreshCw } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
 import { Button } from "@/components/ui/button";
@@ -16,28 +16,63 @@ import { getCanonicalReferralUrl } from "@/lib/referral/referral-url";
 import type { CreatorReferralItem } from "@/types/creator";
 
 export default function CreatorReferralsPage() {
-  const { data: referrals, isLoading } = useAsyncData(
-    () => creatorService.getReferrals(),
-    [],
-    400
-  );
+  const {
+    data: referrals,
+    isLoading: isLoadingReferrals,
+    error: referralsError,
+    refetch: refetchReferrals,
+  } = useAsyncData(() => creatorService.getReferrals(), [], 400);
 
-  const { data: liveCodeData } = useAsyncData(
-    () => referralService.getCode(),
-    [],
-    400
-  );
+  const {
+    data: liveCodeData,
+    refetch: refetchCode,
+  } = useAsyncData(() => referralService.getCode(), [], 400);
 
-  const { data: liveStatsData } = useAsyncData(
-    () => referralService.getStats(),
-    [],
-    400
-  );
+  const {
+    data: liveStatsData,
+    isLoading: isLoadingStats,
+    error: statsError,
+    refetch: refetchStats,
+  } = useAsyncData(() => referralService.getStats(), [], 400);
 
   const [copied, setCopied] = useState(false);
   const [showQr, setShowQr] = useState(false);
 
-  const dataList = referrals || [];
+  // Map fallback items from stats.recentReferrals if creator roster is empty/unreachable
+  const statsReferrals = useMemo<CreatorReferralItem[]>(() => {
+    if (!liveStatsData?.recentReferrals || !Array.isArray(liveStatsData.recentReferrals)) {
+      return [];
+    }
+    return liveStatsData.recentReferrals.map((r: any) => {
+      const u = r.referred_user_id || {};
+      const fullName = `${u.firstname || ""} ${u.lastname || ""}`.trim();
+      const displayName = fullName
+        ? `${fullName} (@${u.username || "creator"})`
+        : (u.username ? `@${u.username}` : "Referred Creator");
+      return {
+        id: r._id?.toString() || r.id || String(Math.random()),
+        referredUser: displayName,
+        avatarUrl: u.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName || u.username || "C")}&background=8b5cf6&color=fff`,
+        joinedDate: r.createdAt ? new Date(r.createdAt).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+        status: (r.status === "qualified" ? "ACTIVE" : "PENDING") as "ACTIVE" | "PENDING",
+        earningsGenerated: {
+          amount: "0.00",
+          currency: "USD",
+        },
+      };
+    });
+  }, [liveStatsData?.recentReferrals]);
+
+  const dataList: CreatorReferralItem[] =
+    referrals && referrals.length > 0
+      ? referrals
+      : statsReferrals.length > 0
+      ? statsReferrals
+      : [];
+
+  const isLoading = isLoadingReferrals && isLoadingStats;
+  const hasError = Boolean(referralsError && statsError && dataList.length === 0);
+
   const code = liveCodeData?.referralCode || "";
   const link = getCanonicalReferralUrl(code, liveCodeData?.referralLink || liveCodeData?.referralUrl);
 
@@ -46,6 +81,12 @@ export default function CreatorReferralsPage() {
     navigator.clipboard.writeText(link);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleRefreshAll = () => {
+    refetchReferrals();
+    refetchCode();
+    refetchStats();
   };
 
   const columns: Column<CreatorReferralItem>[] = [
@@ -169,9 +210,35 @@ export default function CreatorReferralsPage() {
         </CardContent>
       </Card>
 
+      {/* Error state if data load fails and no cached items available */}
+      {hasError ? (
+        <div className="rounded-xl border border-destructive/20 bg-destructive-soft/10 p-8 text-center max-w-lg mx-auto my-6">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+            <AlertCircle className="h-6 w-6" />
+          </div>
+          <h3 className="text-lg font-bold text-text-primary">Unable to load Creator Referrals</h3>
+          <p className="text-sm text-text-muted mt-1 mb-6">
+            {referralsError?.message || statsError?.message || "An unexpected error occurred while fetching your referral roster."}
+          </p>
+          <Button variant="primary" onClick={handleRefreshAll} icon={<RefreshCw className="h-4 w-4" />}>
+            Try Again
+          </Button>
+        </div>
+      ) : null}
+
       {/* Referred Creators DataTable */}
       <div className="space-y-3">
-        <h2 className="text-lg font-bold text-text-primary">Referred Creators Roster</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-text-primary">Referred Creators Roster</h2>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleRefreshAll}
+            icon={<RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />}
+          >
+            Refresh Roster
+          </Button>
+        </div>
         <DataTable
           columns={columns}
           data={dataList}

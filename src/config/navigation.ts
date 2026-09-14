@@ -9,6 +9,7 @@ import {
   Headphones,
   Link2,
   Megaphone,
+  Radio,
   ReceiptText,
   Send,
   UserRound,
@@ -24,6 +25,8 @@ export type NavigationItem = {
 
 export const creatorNavigation: NavigationItem[] = [
   { href: "/creator", label: "Overview", icon: BarChart3 },
+  { href: "/creator/studio", label: "Live Studio", icon: Radio },
+  { href: "/creator/application", label: "Application", icon: FileText },
   { href: "/creator/profile", label: "Profile", icon: UserRound },
   { href: "/creator/performance", label: "Performance", icon: BarChart3 },
   { href: "/creator/compliance", label: "Compliance", icon: ClipboardCheck },

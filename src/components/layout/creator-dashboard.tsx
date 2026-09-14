@@ -18,6 +18,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,9 @@ import { StatusBadge } from "@/components/feedback/status-badge";
 import { formatCurrency } from "@/lib/formatting";
 import { StatCardSkeleton, CardSkeleton } from "@/components/ui/skeleton";
 import { ShareQrModal } from "@/features/creator/components/share-qr-modal";
+import { LiveAccessDeniedModal } from "@/features/creator/components/live-access-denied-modal";
 import { creatorService } from "@/features/creator/services/creator.service";
+import { creatorLiveService } from "@/features/creator/services/creator-live.service";
 import { getCanonicalReferralUrl } from "@/lib/referral/referral-url";
 import type { CreatorDashboard, CreatorActivityItem } from "@/types/creator";
 
@@ -56,11 +59,41 @@ export function CreatorDashboardView({
   isLoading?: boolean;
   onRefresh?: () => void;
 }) {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
-  const [showLiveModal, setShowLiveModal] = useState(false);
+  const [isCheckingLive, setIsCheckingLive] = useState(false);
+  const [deniedModal, setDeniedModal] = useState<{
+    isOpen: boolean;
+    reason?: string;
+    message?: string;
+  }>({ isOpen: false });
   const [activities, setActivities] = useState<CreatorActivityItem[]>(data?.recentActivities || []);
   const [isRefreshingActivities, setIsRefreshingActivities] = useState(false);
+
+  const handleGoLive = async () => {
+    setIsCheckingLive(true);
+    try {
+      const status = await creatorLiveService.checkLiveStatus();
+      if (status.authorized) {
+        router.push("/creator/studio");
+      } else {
+        setDeniedModal({
+          isOpen: true,
+          reason: status.reason || "not_eligible",
+          message: status.message || "You are not authorized to broadcast from the Live Studio at this time.",
+        });
+      }
+    } catch (err: any) {
+      setDeniedModal({
+        isOpen: true,
+        reason: "not_eligible",
+        message: err?.message || "Failed to verify broadcasting eligibility. Please try again later.",
+      });
+    } finally {
+      setIsCheckingLive(false);
+    }
+  };
 
   useEffect(() => {
     if (data?.recentActivities) {
@@ -137,8 +170,14 @@ export function CreatorDashboardView({
           <Button variant="secondary" size="sm" onClick={() => setShowQrModal(true)} icon={<QrCode className="h-4 w-4" />}>
             Share QR Code
           </Button>
-          <Button variant="primary" size="sm" onClick={() => setShowLiveModal(true)} icon={<Video className="h-4 w-4" />}>
-            Go Live Studio
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleGoLive}
+            disabled={isCheckingLive}
+            icon={isCheckingLive ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
+          >
+            {isCheckingLive ? "Checking Access..." : "Go Live Studio"}
           </Button>
         </div>
       </div>
@@ -344,76 +383,13 @@ export function CreatorDashboardView({
         initialLink={canonicalReferralUrl}
       />
 
-      {/* Go Live Studio Broadcaster Setup Modal */}
-      {showLiveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-modal border border-border text-left space-y-4">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <div className="flex items-center space-x-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/10 text-brand">
-                  <Video className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-text-primary">Go Live Studio</h3>
-                  <p className="text-xs text-text-secondary">OBS, vMix & Mobile Broadcaster Connection</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowLiveModal(false)}
-                className="text-text-muted hover:text-text-primary text-sm font-bold p-1 cursor-pointer"
-                aria-label="Close"
-              >
-                ✕
-              </button>
-            </div>
-
-            <p className="text-xs text-text-secondary leading-relaxed">
-              Broadcast live video to your Frenzone community. Stream from your desktop using OBS Studio, Streamlabs, or vMix via RTMP, or broadcast on the go with the Frenzone Mobile app.
-            </p>
-
-            <div className="space-y-3 rounded-xl border border-border bg-surface-muted/60 p-3.5 text-xs">
-              <div>
-                <label className="text-[10px] font-bold uppercase tracking-wider text-text-muted">RTMP Ingest Server</label>
-                <div className="mt-1 flex items-center justify-between rounded-lg border border-border bg-surface px-3 py-1.5 font-mono text-text-primary">
-                  <span className="truncate">rtmps://live.frenzone.net/live</span>
-                  <button
-                    type="button"
-                    onClick={() => navigator.clipboard.writeText("rtmps://live.frenzone.net/live")}
-                    className="text-brand hover:underline font-sans font-semibold text-[11px] ml-2 cursor-pointer"
-                  >
-                    Copy
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Stream Key</label>
-                <div className="mt-1 flex items-center justify-between rounded-lg border border-border bg-surface px-3 py-1.5 font-mono text-text-primary">
-                  <span>live_••••••••••••••••</span>
-                  <span className="text-[10px] text-text-muted font-sans font-medium">Auto-assigned</span>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2 text-[11px] text-text-secondary pt-1">
-                <ShieldCheck className="h-4 w-4 text-brand shrink-0" />
-                <span>Agora SD-RTN Real-Time Interactive Streaming</span>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2 pt-2">
-              <Link href="/creator/compliance" className="flex-1" onClick={() => setShowLiveModal(false)}>
-                <Button variant="secondary" className="w-full text-xs">
-                  Compliance Rules
-                </Button>
-              </Link>
-              <Button variant="primary" className="flex-1 text-xs" onClick={() => setShowLiveModal(false)}>
-                Done
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Live Access Denied / Status Modal */}
+      <LiveAccessDeniedModal
+        isOpen={deniedModal.isOpen}
+        onClose={() => setDeniedModal({ isOpen: false })}
+        reason={deniedModal.reason}
+        message={deniedModal.message}
+      />
     </div>
   );
 }
