@@ -183,36 +183,49 @@ export function CreatorDashboardView({
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Live Stream Hours"
-          value={`${data.liveHours} / ${data.liveHoursTarget}h`}
-          detail={`${Math.round((data.liveHours / data.liveHoursTarget) * 100)}% of monthly target completed`}
-          trend={{ value: "+12.4%", positive: true }}
-          icon={<Clock className="h-5 w-5" />}
-        />
-        <StatCard
-          label="Content Progress"
-          value={`${data.contentProgress}%`}
-          detail="On track for monthly compliance tier"
-          trend={{ value: "+8%", positive: true }}
-          icon={<Video className="h-5 w-5" />}
-        />
-        <StatCard
-          label="Available Earnings"
-          value={formatCurrency(data.availableEarnings)}
-          detail={`Pending: ${formatCurrency(data.pendingEarnings)}`}
-          trend={{ value: "+18.2%", positive: true }}
-          icon={<Wallet className="h-5 w-5" />}
-        />
-        <StatCard
-          label="Total Viewers Reached"
-          value={data.totalViewers.toLocaleString()}
-          detail="Across last 30 streaming sessions"
-          trend={{ value: "+24.5%", positive: true }}
-          icon={<Users className="h-5 w-5" />}
-        />
-      </div>
+      {(() => {
+        const formattedLiveTime = data.liveDurationFormatted
+          ? data.liveDurationFormatted
+          : data.liveHours > 0
+          ? `${data.liveHours}h`
+          : "0m";
+        const totalSec = data.liveDurationSeconds ?? (data.liveHours * 3600);
+        const targetSec = (data.liveHoursTarget || 40) * 3600;
+        const liveTargetProgressPct = Math.min(100, Math.round((totalSec / targetSec) * 100));
+
+        return (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <StatCard
+              label="Live Stream Hours"
+              value={`${formattedLiveTime} / ${data.liveHoursTarget}h`}
+              detail={`${liveTargetProgressPct}% of monthly target completed`}
+              trend={data.trends?.liveHours || { value: "0%", positive: true }}
+              icon={<Clock className="h-5 w-5" />}
+            />
+            <StatCard
+              label="Content Progress"
+              value={`${data.contentProgress}%`}
+              detail="On track for monthly compliance tier"
+              trend={data.trends?.contentProgress || { value: "0%", positive: true }}
+              icon={<Video className="h-5 w-5" />}
+            />
+            <StatCard
+              label="Available Earnings"
+              value={formatCurrency(data.availableEarnings)}
+              detail={`Pending: ${formatCurrency(data.pendingEarnings)}`}
+              trend={data.trends?.earnings || { value: "0%", positive: true }}
+              icon={<Wallet className="h-5 w-5" />}
+            />
+            <StatCard
+              label="Total Viewers Reached"
+              value={data.totalViewers.toLocaleString()}
+              detail="Across last 30 streaming sessions"
+              trend={data.trends?.viewers || { value: "0%", positive: true }}
+              icon={<Users className="h-5 w-5" />}
+            />
+          </div>
+        );
+      })()}
 
       {/* Middle Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
@@ -231,9 +244,18 @@ export function CreatorDashboardView({
             <div>
               <div className="flex justify-between text-sm mb-2 font-medium">
                 <span className="text-text-primary">Monthly Live Stream Target</span>
-                <span className="text-brand font-semibold">{data.liveHours}h of {data.liveHoursTarget}h</span>
+                <span className="text-brand font-semibold">
+                  {data.liveDurationFormatted ? data.liveDurationFormatted : `${data.liveHours}h`} of {data.liveHoursTarget}h
+                </span>
               </div>
-              <ProgressBar value={Math.min(100, Math.round((data.liveHours / data.liveHoursTarget) * 100))} />
+              <ProgressBar
+                value={Math.min(
+                  100,
+                  Math.round(
+                    ((data.liveDurationSeconds ?? (data.liveHours * 3600)) / ((data.liveHoursTarget || 40) * 3600)) * 100
+                  )
+                )}
+              />
             </div>
 
             <div>

@@ -11,6 +11,8 @@ export type CreatorActivityItem = {
 
 export type CreatorDashboard = {
   liveHours: number;
+  liveDurationSeconds?: number;
+  liveDurationFormatted?: string;
   liveHoursTarget: number;
   contentProgress: number;
   complianceStatus: ComplianceStatus;
@@ -20,6 +22,12 @@ export type CreatorDashboard = {
   referralCode: string;
   referralLink: string;
   recentActivities: CreatorActivityItem[];
+  trends?: {
+    liveHours?: { value: string; positive: boolean };
+    contentProgress?: { value: string; positive: boolean };
+    earnings?: { value: string; positive: boolean };
+    viewers?: { value: string; positive: boolean };
+  };
 };
 
 export type CreatorProfile = {

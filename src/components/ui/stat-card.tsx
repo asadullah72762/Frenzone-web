@@ -42,18 +42,20 @@ export function StatCard({
           {value}
         </p>
 
-        {trend ? (
-          <span
-            className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full ${
-              trend.positive
-                ? "bg-success-soft text-success"
-                : "bg-danger-soft text-danger"
-            }`}
-          >
-            {trend.positive ? "+" : ""}
-            {trend.value}
-          </span>
-        ) : null}
+        {trend && trend.value ? (() => {
+          const cleanValue = trend.value.replace(/^[+-]/, "").trim();
+          return (
+            <span
+              className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full ${
+                trend.positive
+                  ? "bg-success-soft text-success"
+                  : "bg-danger-soft text-danger"
+              }`}
+            >
+              {trend.positive ? "+" : "-"}{cleanValue}
+            </span>
+          );
+        })() : null}
       </div>
 
       {detail ? (

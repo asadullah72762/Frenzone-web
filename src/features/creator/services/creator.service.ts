@@ -29,9 +29,11 @@ export class CreatorService {
         const d = res.data;
         const stats = d.stats || {};
         return {
-          liveHours: d.liveHours ?? Math.round((stats.totalStreams || 0) * 1.5),
+          liveHours: typeof d.liveHours === "number" ? d.liveHours : 0,
+          liveDurationSeconds: d.liveDurationSeconds ?? 0,
+          liveDurationFormatted: d.liveDurationFormatted || undefined,
           liveHoursTarget: d.liveHoursTarget ?? 40,
-          contentProgress: d.contentProgress ?? (stats.totalStreams > 0 ? Math.min(Math.round((stats.totalStreams / 20) * 100), 100) : 0),
+          contentProgress: typeof d.contentProgress === "number" ? d.contentProgress : 0,
           complianceStatus: d.complianceStatus ?? (d.isApproved ? "COMPLETED" : "PARTIAL"),
           availableEarnings: d.availableEarnings || {
             amount: Number(stats.estimatedEarningsUSD || 0).toFixed(2),
@@ -45,6 +47,7 @@ export class CreatorService {
           referralCode: d.referralCode || "",
           referralLink: getCanonicalReferralUrl(d.referralCode, d.referralLink),
           recentActivities: Array.isArray(d.recentActivities) ? d.recentActivities : [],
+          trends: d.trends || undefined,
         };
       }
     } catch (err: any) {
