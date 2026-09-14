@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Radio, ArrowLeft, Activity, ChevronDown, Mic, MicOff, Video, VideoOff, Settings, Power, Users, Gem, MessageSquare } from "lucide-react";
+import { Radio, ArrowLeft, Activity, ChevronDown, Mic, MicOff, Video, VideoOff, Settings, Power, Users, Gem, MessageSquare, SwitchCamera } from "lucide-react";
 import { creatorLiveService, type LiveStatusResponse, type LiveSessionResponse } from "@/features/creator/services/creator-live.service";
 import { LiveAccessDeniedModal } from "@/features/creator/components/live-access-denied-modal";
 import { useMediaDevices } from "@/features/creator/hooks/use-media-devices";
@@ -47,6 +47,21 @@ export default function CreatorStudioPage() {
 
   const heartbeatTimerRef = useRef<NodeJS.Timeout | null>(null);
   const durationTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Quick camera flip (mobile front/back toggle)
+  const handleFlipCamera = useCallback(async () => {
+    if (!media.cameras || media.cameras.length < 2) return;
+    const currentIndex = media.cameras.findIndex((c) => c.deviceId === media.selectedCameraId);
+    const nextIndex = (currentIndex + 1) % media.cameras.length;
+    const nextCamera = media.cameras[nextIndex];
+    if (nextCamera) {
+      if (agora.isBroadcasting) {
+        await agora.switchCamera(nextCamera.deviceId);
+      } else {
+        await media.switchCamera(nextCamera.deviceId);
+      }
+    }
+  }, [media.cameras, media.selectedCameraId, agora.isBroadcasting, agora.switchCamera, media.switchCamera]);
 
   // Monitor browser network online/offline events
   useEffect(() => {
@@ -236,6 +251,72 @@ export default function CreatorStudioPage() {
     );
   }
 
+  // 5. Broadcaster Stage Immersion View (When live on air - 100% full glass screen)
+  if (agora.isBroadcasting) {
+    return (
+      <div className="fixed inset-0 z-50 h-[100dvh] w-screen overflow-hidden bg-black select-none overscroll-none touch-manipulation">
+        <MediaPreview
+          localStream={media.localStream}
+          isBroadcasting={true}
+          isVideoMuted={agora.isVideoMuted}
+          isAudioMuted={agora.isAudioMuted}
+          audioLevel={media.audioLevel}
+          cameraStatus={media.cameraStatus}
+          microphoneStatus={media.microphoneStatus}
+          cameraStatusMessage={media.cameraStatusMessage}
+          microphoneStatusMessage={media.microphoneStatusMessage}
+          hasDeviceDisconnected={media.hasDeviceDisconnected}
+          viewerCount={socket.viewerCount}
+          totalDiamonds={socket.totalDiamonds}
+          liveDurationFormatted={formatDuration(liveDurationSeconds)}
+          streamTitle={streamTitle}
+          category={category}
+          isStarting={isStarting}
+          isEnding={isEnding}
+          isRequesting={media.isRequesting}
+          canFlipCamera={media.cameras.length > 1}
+          isReconnecting={agora.connectionState === "RECONNECTING"}
+          cameras={media.cameras}
+          microphones={media.microphones}
+          selectedCameraId={media.selectedCameraId}
+          selectedMicrophoneId={media.selectedMicrophoneId}
+          isChatOpen={isChatOpen}
+          onToggleChat={() => setIsChatOpen((prev) => !prev)}
+          onRetryCamera={() => media.startPreview(media.selectedCameraId, media.selectedMicrophoneId)}
+          onRequestPermission={() => media.requestPermission()}
+          onOpenPermissionGuide={() => setShowPermissionGuideModal(true)}
+          onToggleVideo={agora.toggleMuteVideo}
+          onToggleAudio={agora.toggleMuteAudio}
+          onFlipCamera={media.cameras.length > 1 ? handleFlipCamera : undefined}
+          onSelectCamera={agora.switchCamera}
+          onSelectMicrophone={agora.switchMicrophone}
+          onRefreshDevices={media.enumerateDevices}
+          onEndLive={handleEndLive}
+          onAttachAgoraVideo={agora.attachVideoElement}
+        >
+          {isChatOpen && (
+            <LiveChatPanel
+              comments={socket.comments}
+              latestGift={socket.latestGift}
+              isBroadcasting={true}
+              onSendHostComment={socket.sendHostComment}
+              variant="overlay"
+              onClose={() => setIsChatOpen(false)}
+            />
+          )}
+        </MediaPreview>
+
+        {/* Post-Stream Summary Modal */}
+        <PostStreamModal
+          isOpen={showPostStreamModal}
+          summary={summaryData}
+          onClose={() => setShowPostStreamModal(false)}
+          onReturnDashboard={() => router.push("/creator")}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Top Header Bar */}
@@ -252,12 +333,6 @@ export default function CreatorStudioPage() {
               <h1 className="text-2xl font-bold tracking-tight text-text-primary flex items-center gap-2">
                 Frenzone Live Studio
               </h1>
-              {agora.isBroadcasting && (
-                <span className="flex items-center gap-1.5 rounded-full bg-rose-600 px-3 py-0.5 text-[11px] font-extrabold text-white uppercase tracking-wider animate-pulse shadow-sm">
-                  <span className="h-2 w-2 rounded-full bg-white" />
-                  ON AIR
-                </span>
-              )}
             </div>
             <p className="text-xs font-medium text-text-secondary mt-0.5">
               Broadcast high definition live video directly to your Frenzone community.
@@ -267,7 +342,7 @@ export default function CreatorStudioPage() {
 
         {/* Live / Studio Connectivity Indicator */}
         <NetworkIndicator
-          isBroadcasting={agora.isBroadcasting}
+          isBroadcasting={false}
           connectionState={agora.connectionState}
           networkQuality={agora.networkQuality}
           currentProfile={agora.currentProfile}
@@ -276,109 +351,74 @@ export default function CreatorStudioPage() {
         />
       </div>
 
-      {/* Reconnecting Banner */}
-      {agora.isBroadcasting && agora.connectionState === "RECONNECTING" && (
-        <div className="flex items-center justify-center gap-2 rounded-xl bg-amber-500/10 border border-amber-500/30 p-3 text-xs font-bold text-amber-700 animate-pulse">
-          <Activity className="h-4 w-4 animate-spin" />
-          <span>Connection degraded. Reconnecting broadcast to network...</span>
-        </div>
-      )}
-
       {/* Main Studio — Single Unified Stage */}
       <div className="mx-auto max-w-4xl rounded-2xl border border-border bg-surface p-5 md:p-6 shadow-sm space-y-4">
         {/* Stream Details Ribbon (Title & Category) — Cleanly positioned at top of studio stage */}
-        {!agora.isBroadcasting ? (
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={streamTitle}
-                onChange={(e) => setStreamTitle(e.target.value)}
-                placeholder="Add a broadcast title (e.g. Sunday Hangout & AMA 🔥)..."
-                maxLength={80}
-                className="w-full rounded-xl border border-border bg-surface-muted px-4 py-2.5 text-sm font-semibold text-text-primary placeholder:text-text-muted outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all shadow-inner"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-mono font-medium text-text-muted">
-                {streamTitle.length}/80
-              </span>
-            </div>
-
-            <div className="w-full sm:w-56">
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full rounded-xl border border-border bg-surface-muted px-3.5 py-2.5 text-xs font-bold text-text-primary outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all cursor-pointer shadow-inner"
-              >
-                <option value="Just Chatting">Just Chatting</option>
-                <option value="Gaming & Esports">Gaming & Esports</option>
-                <option value="Music & Performance">Music & Performance</option>
-                <option value="Fitness & Wellness">Fitness & Wellness</option>
-                <option value="Art & Creative">Art & Creative</option>
-                <option value="Education & Tech">Education & Tech</option>
-                <option value="Lifestyle & Vlogs">Lifestyle & Vlogs</option>
-              </select>
-            </div>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex-1 relative">
+            <input
+              type="text"
+              value={streamTitle}
+              onChange={(e) => setStreamTitle(e.target.value)}
+              placeholder="Add a broadcast title (e.g. Sunday Hangout & AMA 🔥)..."
+              maxLength={80}
+              className="w-full rounded-xl border border-border bg-surface-muted px-4 py-2.5 text-sm font-semibold text-text-primary placeholder:text-text-muted outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all shadow-inner"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-mono font-medium text-text-muted">
+              {streamTitle.length}/80
+            </span>
           </div>
-        ) : (
-          /* Live Stream Information Header */
-          <div className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-4 py-2.5">
-            <div className="flex items-center gap-2.5">
-              <span className="text-sm font-extrabold text-text-primary">{streamTitle || "Frenzone Live Stream"}</span>
-              <span className="rounded-full bg-brand/10 border border-brand/20 px-2.5 py-0.5 text-[11px] font-bold text-brand">
-                {category}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-xs font-bold text-text-secondary">
-              <Users className="h-4 w-4 text-brand" />
-              <span>{socket.viewerCount.toLocaleString()} Viewers</span>
-            </div>
-          </div>
-        )}
 
-        {/* Video Stage with Persistent Element, On-Canvas Action, and Integrated Chat Overlay */}
+          <div className="w-full sm:w-56">
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full rounded-xl border border-border bg-surface-muted px-3.5 py-2.5 text-xs font-bold text-text-primary outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all cursor-pointer shadow-inner"
+            >
+              <option value="Just Chatting">Just Chatting</option>
+              <option value="Gaming & Esports">Gaming & Esports</option>
+              <option value="Music & Performance">Music & Performance</option>
+              <option value="Fitness & Wellness">Fitness & Wellness</option>
+              <option value="Art & Creative">Art & Creative</option>
+              <option value="Education & Tech">Education & Tech</option>
+              <option value="Lifestyle & Vlogs">Lifestyle & Vlogs</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Video Stage with Persistent Element and Direct On-Canvas Action */}
         <MediaPreview
           localStream={media.localStream}
-          isBroadcasting={agora.isBroadcasting}
-          isVideoMuted={agora.isBroadcasting ? agora.isVideoMuted : media.isVideoMuted}
-          isAudioMuted={agora.isBroadcasting ? agora.isAudioMuted : media.isAudioMuted}
+          isBroadcasting={false}
+          isVideoMuted={media.isVideoMuted}
+          isAudioMuted={media.isAudioMuted}
           audioLevel={media.audioLevel}
           cameraStatus={media.cameraStatus}
           microphoneStatus={media.microphoneStatus}
           cameraStatusMessage={media.cameraStatusMessage}
           microphoneStatusMessage={media.microphoneStatusMessage}
           hasDeviceDisconnected={media.hasDeviceDisconnected}
-          viewerCount={socket.viewerCount}
-          totalDiamonds={socket.totalDiamonds}
-          liveDurationFormatted={formatDuration(liveDurationSeconds)}
+          streamTitle={streamTitle}
+          category={category}
           isStarting={isStarting}
           isEnding={isEnding}
           isRequesting={media.isRequesting}
+          canFlipCamera={media.cameras.length > 1}
+          cameras={media.cameras}
+          microphones={media.microphones}
+          selectedCameraId={media.selectedCameraId}
+          selectedMicrophoneId={media.selectedMicrophoneId}
           onRetryCamera={() => media.startPreview(media.selectedCameraId, media.selectedMicrophoneId)}
           onRequestPermission={() => media.requestPermission()}
           onOpenPermissionGuide={() => setShowPermissionGuideModal(true)}
-          onToggleVideo={() => {
-            if (agora.isBroadcasting) {
-              agora.toggleMuteVideo();
-            } else {
-              media.toggleMuteVideo();
-            }
-          }}
+          onToggleVideo={media.toggleMuteVideo}
+          onToggleAudio={media.toggleMuteAudio}
+          onFlipCamera={media.cameras.length > 1 ? handleFlipCamera : undefined}
+          onSelectCamera={media.switchCamera}
+          onSelectMicrophone={media.switchMicrophone}
+          onRefreshDevices={media.enumerateDevices}
           onStartLive={handleStartLive}
-          onEndLive={handleEndLive}
-          onAttachAgoraVideo={agora.attachVideoElement}
-        >
-          {/* Integrated Live Chat Overlay (Overlay docked directly on video stage) */}
-          {agora.isBroadcasting && isChatOpen && (
-            <LiveChatPanel
-              comments={socket.comments}
-              latestGift={socket.latestGift}
-              isBroadcasting={agora.isBroadcasting}
-              onSendHostComment={socket.sendHostComment}
-              variant="overlay"
-              onClose={() => setIsChatOpen(false)}
-            />
-          )}
-        </MediaPreview>
+        />
 
         {/* Collapsible Device Settings Popover */}
         {showDeviceSettings && (
@@ -387,20 +427,8 @@ export default function CreatorStudioPage() {
             microphones={media.microphones}
             selectedCameraId={media.selectedCameraId}
             selectedMicrophoneId={media.selectedMicrophoneId}
-            onSelectCamera={(deviceId) => {
-              if (agora.isBroadcasting) {
-                agora.switchCamera(deviceId);
-              } else {
-                media.switchCamera(deviceId);
-              }
-            }}
-            onSelectMicrophone={(deviceId) => {
-              if (agora.isBroadcasting) {
-                agora.switchMicrophone(deviceId);
-              } else {
-                media.switchMicrophone(deviceId);
-              }
-            }}
+            onSelectCamera={media.switchCamera}
+            onSelectMicrophone={media.switchMicrophone}
             onRefreshDevices={media.enumerateDevices}
             onClose={() => setShowDeviceSettings(false)}
           />
@@ -412,15 +440,15 @@ export default function CreatorStudioPage() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={agora.isBroadcasting ? agora.toggleMuteAudio : media.toggleMuteAudio}
+              onClick={media.toggleMuteAudio}
               className={`flex h-11 w-11 items-center justify-center rounded-xl border transition-all cursor-pointer shadow-sm ${
-                (agora.isBroadcasting ? agora.isAudioMuted : media.isAudioMuted)
+                media.isAudioMuted
                   ? "border-rose-500/40 bg-rose-50 text-rose-600"
                   : "border-border bg-surface-muted text-text-primary hover:bg-surface"
               }`}
               title="Toggle Microphone"
             >
-              {(agora.isBroadcasting ? agora.isAudioMuted : media.isAudioMuted) ? (
+              {media.isAudioMuted ? (
                 <MicOff className="h-5 w-5" />
               ) : (
                 <Mic className="h-5 w-5 text-emerald-600" />
@@ -429,20 +457,31 @@ export default function CreatorStudioPage() {
 
             <button
               type="button"
-              onClick={agora.isBroadcasting ? agora.toggleMuteVideo : media.toggleMuteVideo}
+              onClick={media.toggleMuteVideo}
               className={`flex h-11 w-11 items-center justify-center rounded-xl border transition-all cursor-pointer shadow-sm ${
-                (agora.isBroadcasting ? agora.isVideoMuted : media.isVideoMuted)
+                media.isVideoMuted
                   ? "border-rose-500/40 bg-rose-50 text-rose-600"
                   : "border-border bg-surface-muted text-text-primary hover:bg-surface"
               }`}
               title="Toggle Camera"
             >
-              {(agora.isBroadcasting ? agora.isVideoMuted : media.isVideoMuted) ? (
+              {media.isVideoMuted ? (
                 <VideoOff className="h-5 w-5" />
               ) : (
                 <Video className="h-5 w-5 text-brand" />
               )}
             </button>
+
+            {media.cameras.length > 1 && (
+              <button
+                type="button"
+                onClick={handleFlipCamera}
+                className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-surface-muted text-text-primary hover:bg-surface transition-all cursor-pointer shadow-sm"
+                title="Flip Camera"
+              >
+                <SwitchCamera className="h-5 w-5" />
+              </button>
+            )}
 
             <button
               type="button"
@@ -456,47 +495,19 @@ export default function CreatorStudioPage() {
             >
               <Settings className="h-5 w-5" />
             </button>
-
-            {/* Chat Toggle Button (Visible during live broadcast) */}
-            {agora.isBroadcasting && (
-              <button
-                type="button"
-                onClick={() => setIsChatOpen((prev) => !prev)}
-                className={`flex h-11 w-11 items-center justify-center rounded-xl border transition-all cursor-pointer shadow-sm ${
-                  isChatOpen
-                    ? "border-brand bg-brand/10 text-brand"
-                    : "border-border bg-surface-muted text-text-primary hover:bg-surface"
-                }`}
-                title={isChatOpen ? "Hide Live Chat" : "Show Live Chat"}
-              >
-                <MessageSquare className="h-5 w-5" />
-              </button>
-            )}
           </div>
 
-          {/* Action Button: START LIVE NOW / END BROADCAST */}
-          <div>
-            {!agora.isBroadcasting ? (
-              <button
-                type="button"
-                onClick={handleStartLive}
-                disabled={isStarting}
-                className="flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-brand to-brand-hover hover:from-brand-hover hover:to-brand-active px-8 py-3.5 text-sm font-extrabold uppercase tracking-wider text-white shadow-xl shadow-brand/25 hover:shadow-2xl transition-all cursor-pointer active:scale-[0.98]"
-              >
-                <Radio className={`h-5 w-5 ${isStarting ? "animate-spin" : ""}`} />
-                <span>{isStarting ? "Starting Live..." : "START LIVE NOW"}</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleEndLive}
-                disabled={isEnding}
-                className="flex items-center gap-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 px-8 py-3.5 text-sm font-extrabold uppercase tracking-wider text-white shadow-xl shadow-rose-600/25 transition-all cursor-pointer active:scale-[0.98]"
-              >
-                <Power className="h-5 w-5" />
-                <span>{isEnding ? "Ending Stream..." : "END BROADCAST"}</span>
-              </button>
-            )}
+          {/* Action Button: START LIVE NOW (Desktop View - Mobile uses on-canvas hero pill) */}
+          <div className="w-full sm:w-auto hidden sm:flex justify-end">
+            <button
+              type="button"
+              onClick={handleStartLive}
+              disabled={isStarting}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 sm:gap-2.5 rounded-xl bg-gradient-to-r from-brand to-brand-hover hover:from-brand-hover hover:to-brand-active px-5 py-2.5 sm:px-8 sm:py-3.5 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-white shadow-lg sm:shadow-xl shadow-brand/25 hover:shadow-2xl transition-all cursor-pointer active:scale-[0.98] whitespace-nowrap"
+            >
+              <Radio className={`h-4 w-4 sm:h-5 sm:w-5 shrink-0 ${isStarting ? "animate-spin" : ""}`} />
+              <span>{isStarting ? "Starting..." : "START LIVE NOW"}</span>
+            </button>
           </div>
         </div>
       </div>

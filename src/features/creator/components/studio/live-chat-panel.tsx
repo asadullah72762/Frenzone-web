@@ -48,7 +48,7 @@ export function LiveChatPanel({
 
   return (
     <div
-      className={`absolute bottom-16 left-4 z-30 flex flex-col justify-end pointer-events-none max-w-[320px] sm:max-w-[380px] select-none ${className}`}
+      className={`absolute bottom-20 sm:bottom-24 left-3 sm:left-4 z-30 flex flex-col justify-end pointer-events-none max-w-[320px] sm:max-w-[380px] select-none ${className}`}
     >
       {/* 1. Recent Gift Alert Floating Pill (TikTok / Facebook Live Gift Banner) */}
       {latestGift && (
@@ -147,7 +147,7 @@ export function LiveChatPanel({
             onChange={(e) => setInputText(e.target.value)}
             placeholder="Comment as host..."
             maxLength={140}
-            className="w-full rounded-full border border-white/15 bg-black/50 backdrop-blur-md px-3.5 py-1.5 text-xs text-white placeholder:text-white/60 focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all shadow-lg"
+            className="w-full rounded-full border border-white/20 bg-black/60 backdrop-blur-xl px-3.5 py-1.5 text-base sm:text-xs text-white placeholder:text-white/60 focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all shadow-lg"
           />
           {inputText.trim() && (
             <button

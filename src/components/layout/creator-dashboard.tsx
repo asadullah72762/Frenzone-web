@@ -153,20 +153,20 @@ export function CreatorDashboardView({
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
-        <div>
-          <div className="flex items-center space-x-3">
-            <h1 className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5 min-w-0">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-text-primary break-words">
               Creator Hub Overview
             </h1>
             <StatusBadge status={data.complianceStatus} />
           </div>
-          <p className="text-text-secondary mt-1 text-sm">
+          <p className="text-text-secondary mt-1 text-xs sm:text-sm">
             Monitor your streaming progress, daily targets, earnings, and network growth.
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
           <Button variant="secondary" size="sm" onClick={() => setShowQrModal(true)} icon={<QrCode className="h-4 w-4" />}>
             Share QR Code
           </Button>
@@ -191,7 +191,9 @@ export function CreatorDashboardView({
           : "0m";
         const totalSec = data.liveDurationSeconds ?? (data.liveHours * 3600);
         const targetSec = (data.liveHoursTarget || 40) * 3600;
-        const liveTargetProgressPct = Math.min(100, Math.round((totalSec / targetSec) * 100));
+        const liveTargetProgressPct = totalSec > 0
+          ? Math.min(100, Math.max(1, Math.round((totalSec / targetSec) * 100)))
+          : 0;
 
         return (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

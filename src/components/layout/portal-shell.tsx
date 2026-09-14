@@ -102,20 +102,20 @@ export function PortalShell({ product, links, children }: Props) {
       </header>
 
       {/* Main Layout */}
-      <div className="flex-1">
-        <Container className="grid gap-8 py-6 lg:grid-cols-[16rem_1fr] items-start">
-          {/* Separately Scrollable Sticky Sidebar Column */}
-          <aside className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto pr-2 pb-8 scrollbar-thin scrollbar-thumb-border hover:scrollbar-thumb-text-muted transition-colors flex flex-col justify-between">
-            <div className="space-y-4">
-              {/* Sidebar Header Badge */}
-              <div className="px-3 pt-2">
+      <div className="flex-1 min-w-0">
+        <Container className="grid gap-4 lg:gap-8 py-4 lg:py-6 lg:grid-cols-[16rem_1fr] items-start min-w-0">
+          {/* Sidebar Navigation: compact horizontal bar on mobile, full sticky sidebar on desktop */}
+          <aside className="w-full min-w-0 max-w-full lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:overflow-y-auto pr-0 lg:pr-2 pb-0 lg:pb-8 lg:scrollbar-thin lg:scrollbar-thumb-border lg:hover:scrollbar-thumb-text-muted transition-colors flex flex-col justify-between">
+            <div className="space-y-2 lg:space-y-4 min-w-0">
+              {/* Sidebar Header Badge (Desktop Only) */}
+              <div className="px-3 pt-2 hidden lg:block">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-text-muted">
                   {product} Workspace
                 </span>
               </div>
 
-              {/* Navigation Items */}
-              <nav className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-x-visible">
+              {/* Navigation Items (smooth horizontal touch scrolling on mobile) */}
+              <nav className="flex gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-none lg:flex-col lg:overflow-x-visible w-full min-w-0 overscroll-x-contain touch-pan-x [-webkit-overflow-scrolling:touch]">
                 {links.map(({ href, icon: Icon, label }) => {
                   const isActive =
                     pathname === href ||
@@ -125,10 +125,10 @@ export function PortalShell({ product, links, children }: Props) {
                     <Link
                       key={href}
                       href={href}
-                      className={`group flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-extrabold transition-all whitespace-nowrap lg:whitespace-normal cursor-pointer ${
+                      className={`group flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-extrabold transition-all whitespace-nowrap lg:whitespace-normal cursor-pointer shrink-0 select-none ${
                         isActive
                           ? "bg-brand text-white shadow-sm"
-                          : "text-text-secondary hover:bg-surface hover:text-text-primary"
+                          : "text-text-secondary hover:bg-surface hover:text-text-primary bg-surface/80 border border-border/40 lg:border-transparent lg:bg-transparent"
                       }`}
                     >
                       <div className="flex items-center space-x-2.5">
@@ -148,8 +148,8 @@ export function PortalShell({ product, links, children }: Props) {
               </nav>
             </div>
 
-            {/* Sidebar Bottom User Profile Card */}
-            <div className="pt-6 border-t border-border mt-6 px-1">
+            {/* Sidebar Bottom User Profile Card (Desktop Only to prevent mobile overlays/gaps) */}
+            <div className="pt-6 border-t border-border mt-6 px-1 hidden lg:block">
               <div className="rounded-2xl border border-border bg-surface p-3.5 shadow-sm space-y-3">
                 <div className="flex items-center space-x-3">
                   {session?.user?.profilePicture ? (
