@@ -163,8 +163,22 @@ export function useAgoraBroadcast() {
         const isRealHex = /^[a-fA-F0-9]{32}$/.test(cleanAppId) && !/^(.)\1+$/.test(cleanAppId);
 
         if (isRealHex) {
+          // In Agora "live" streaming mode, the default role is "audience".
+          // As a broadcaster, we must explicitly set the client role to "host" to publish tracks.
+          try {
+            await client.setClientRole("host");
+          } catch (roleErr) {
+            console.warn("Agora setClientRole pre-join note:", roleErr);
+          }
+
           // Join channel on official Agora RTC edge servers
           await client.join(cleanAppId, params.channelName, params.token, params.uid);
+
+          try {
+            await client.setClientRole("host");
+          } catch (roleErr2) {
+            console.warn("Agora setClientRole post-join note:", roleErr2);
+          }
 
           // Track creation from real hardware devices with fallback
           try {
