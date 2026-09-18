@@ -10,6 +10,14 @@ const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 async function getAuthToken(): Promise<string | null> {
   if (typeof window === "undefined") return null;
 
+  const storedToken =
+    localStorage.getItem("token") ||
+    localStorage.getItem("frenzone_token");
+
+  if (storedToken) {
+    return storedToken;
+  }
+
   try {
     if (typeof auth.authStateReady === "function") {
       await auth.authStateReady();
@@ -17,7 +25,6 @@ async function getAuthToken(): Promise<string | null> {
     if (auth.currentUser) {
       const freshToken = await auth.currentUser.getIdToken();
       if (freshToken) {
-        localStorage.setItem("frenzone_token", freshToken);
         return freshToken;
       }
     }
@@ -25,7 +32,7 @@ async function getAuthToken(): Promise<string | null> {
     console.warn("Could not retrieve fresh Firebase token:", err);
   }
 
-  return localStorage.getItem("frenzone_token") || localStorage.getItem("token");
+  return null;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -109,9 +116,10 @@ export const apiClient = {
       method: "PATCH",
       body: body === undefined ? undefined : JSON.stringify(body),
     }),
-  delete: <T>(path: string) =>
+  delete: <T>(path: string, body?: unknown) =>
     request<T>(path, {
       method: "DELETE",
+      body: body === undefined ? undefined : JSON.stringify(body),
     }),
   postFormData: async <T>(path: string, formData: FormData): Promise<T> => {
     const token = await getAuthToken();

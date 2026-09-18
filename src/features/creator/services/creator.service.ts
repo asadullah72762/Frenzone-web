@@ -24,37 +24,50 @@ import type {
 export class CreatorService {
   async getDashboard(): Promise<CreatorDashboard> {
     try {
-      const res = await apiClient.get<{ success: boolean; data: any }>("/creator/dashboard");
+      // Call the authoritative /creator/dashboard endpoint which reads
+      // StreamAnalysis, Referral, Wallet, and Activity collections from DB
+      const res = await apiClient.get<{ success: boolean; data?: any }>("/creator/dashboard").catch(() => null);
+
       if (res?.data) {
         const d = res.data;
-        const stats = d.stats || {};
         return {
-          liveHours: typeof d.liveHours === "number" ? d.liveHours : 0,
-          liveDurationSeconds: d.liveDurationSeconds ?? 0,
-          liveDurationFormatted: d.liveDurationFormatted || undefined,
-          liveHoursTarget: d.liveHoursTarget ?? 40,
-          contentProgress: typeof d.contentProgress === "number" ? d.contentProgress : 0,
-          complianceStatus: d.complianceStatus ?? (d.isApproved ? "COMPLETED" : "PARTIAL"),
-          availableEarnings: d.availableEarnings || {
-            amount: Number(stats.estimatedEarningsUSD || 0).toFixed(2),
-            currency: "USD",
-          },
-          pendingEarnings: d.pendingEarnings || {
-            amount: "0.00",
-            currency: "USD",
-          },
-          totalViewers: d.totalViewers ?? (stats.followersCount || stats.totalLikes || 0),
+          liveHours: d.liveHours || 0,
+          liveHoursTarget: d.liveHoursTarget || 40,
+          contentProgress: d.contentProgress || 0,
+          complianceStatus: d.complianceStatus || "PARTIAL",
+          availableEarnings: d.availableEarnings || { amount: "0.00", currency: "USD" },
+          pendingEarnings: d.pendingEarnings || { amount: "0.00", currency: "USD" },
+          totalViewers: d.totalViewers || 0,
           referralCode: d.referralCode || "",
-          referralLink: getCanonicalReferralUrl(d.referralCode, d.referralLink),
+          referralLink: d.referralLink || getCanonicalReferralUrl(d.referralCode || ""),
           recentActivities: Array.isArray(d.recentActivities) ? d.recentActivities : [],
-          trends: d.trends || undefined,
+          trends: d.trends,
+          // Use backend-computed formatted string (e.g. "3m" or "1.5h")
+          liveDurationFormatted: d.liveDurationFormatted || (d.liveHours > 0 ? `${d.liveHours}h` : undefined),
+          liveDurationSeconds: d.liveDurationSeconds || 0,
         };
       }
+
+      // Fallback: build from local session if backend unreachable
+      const userStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+      const user = userStr ? JSON.parse(userStr) : null;
+      const activeUser = user || {};
+      return {
+        liveHours: 0,
+        liveHoursTarget: 40,
+        contentProgress: activeUser.liveAccess !== false ? 100 : 50,
+        complianceStatus: activeUser.liveAccess !== false ? "COMPLETED" : "PARTIAL",
+        availableEarnings: { amount: "0.00", currency: "USD" },
+        pendingEarnings: { amount: "0.00", currency: "USD" },
+        totalViewers: Array.isArray(activeUser.followers) ? activeUser.followers.length : 0,
+        referralCode: activeUser.referralCode || activeUser.username || "",
+        referralLink: getCanonicalReferralUrl(activeUser.referralCode || activeUser.username || ""),
+        recentActivities: [],
+      };
     } catch (err: any) {
       console.error("Failed to load creator dashboard:", err?.message || err);
       throw err;
     }
-    throw new Error("Failed to load creator dashboard");
   }
 
   async getActivities(): Promise<CreatorActivityItem[]> {

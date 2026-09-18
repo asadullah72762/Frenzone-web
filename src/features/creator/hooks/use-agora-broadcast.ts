@@ -110,7 +110,7 @@ export function useAgoraBroadcast() {
     async (params: {
       appId: string;
       channelName: string;
-      token: string;
+      token: string | null;
       uid: string | number;
       cameraId?: string;
       microphoneId?: string;
@@ -171,8 +171,9 @@ export function useAgoraBroadcast() {
             console.warn("Agora setClientRole pre-join note:", roleErr);
           }
 
-          // Join channel on official Agora RTC edge servers
-          await client.join(cleanAppId, params.channelName, params.token, params.uid);
+          // Join channel on official Agora RTC edge servers (pass null if token is empty string)
+          const rtcToken = (params.token && String(params.token).trim() !== "") ? String(params.token).trim() : null;
+          await client.join(cleanAppId, params.channelName, rtcToken, params.uid);
 
           try {
             await client.setClientRole("host");
@@ -235,10 +236,18 @@ export function useAgoraBroadcast() {
         setCurrentProfile("720p");
       } catch (err: any) {
         console.error("Agora Broadcast Error:", err);
-        setBroadcastError(err.message || "Failed to establish live broadcast with Agora.");
+        let msg = err.message || "Failed to establish live broadcast with Agora.";
+        if (
+          msg.includes("CAN_NOT_GET_GATEWAY_SERVER") ||
+          msg.includes("invalid vendor key") ||
+          msg.includes("can not find appid")
+        ) {
+          msg = "Invalid Agora App ID configured. Please enter a valid Agora App ID from console.agora.io in your AGORA_APPID / NEXT_PUBLIC_AGORA_APP_ID environment variable.";
+        }
+        setBroadcastError(msg);
         setIsJoining(false);
         setIsBroadcasting(false);
-        throw err;
+        throw new Error(msg);
       }
     },
     [applyAdaptiveProfile]

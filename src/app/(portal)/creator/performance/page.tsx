@@ -60,8 +60,8 @@ export default function CreatorPerformancePage() {
   const chartItems = data.trendData.map((item) => ({
     label: item.date,
     value: item.viewers,
-    subLabel: `${item.hours}h`,
-    tooltipText: `${item.date}: ${item.viewers.toLocaleString()} Viewers (${item.hours} hrs streamed)`,
+    subLabel: item.hours >= 1 ? `${item.hours}h` : `${Math.max(1, Math.round(item.hours * 60))}m`,
+    tooltipText: `${item.date}: ${item.viewers.toLocaleString()} Viewers (${item.hours >= 1 ? `${item.hours} hrs` : `${Math.max(1, Math.round(item.hours * 60))} min`} streamed)`,
   }));
 
   const rangeLabels = {
@@ -106,7 +106,13 @@ export default function CreatorPerformancePage() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Total Stream Hours"
-          value={`${data.totalHoursStreamed}h`}
+          value={
+            data.totalHoursStreamed >= 1
+              ? `${data.totalHoursStreamed}h`
+              : data.totalHoursStreamed > 0
+              ? `${Math.max(1, Math.round(data.totalHoursStreamed * 60))}m`
+              : "0m"
+          }
           detail={`Across ${data.totalStreamSessions} stream sessions`}
           icon={<Clock className="h-5 w-5" />}
         />

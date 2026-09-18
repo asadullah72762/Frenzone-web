@@ -122,14 +122,14 @@ export function MediaPreview({
     videoEl.muted = true;
 
     if (localStream && localStream.getVideoTracks().length > 0) {
-      videoEl.srcObject = localStream;
-      const playVideo = () => {
-        videoEl.play().catch((err) => {
+      if (videoEl.srcObject !== localStream) {
+        videoEl.srcObject = localStream;
+      }
+      videoEl.play().catch((err: any) => {
+        if (err?.name !== "AbortError") {
           console.warn("Video preview play error note:", err);
-        });
-      };
-      videoEl.onloadedmetadata = playVideo;
-      playVideo();
+        }
+      });
     } else {
       videoEl.srcObject = null;
     }

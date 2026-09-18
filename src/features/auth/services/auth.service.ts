@@ -182,6 +182,11 @@ export const authService = {
         referralCode: referralCode || undefined,
       });
 
+      if (res.token && typeof window !== "undefined") {
+        localStorage.setItem("frenzone_token", res.token);
+        localStorage.setItem("token", res.token);
+      }
+
       // 4. Resolve authoritative backend session profile
       const session = await authService.getSession();
       if (session.user && typeof window !== "undefined") {
@@ -190,7 +195,7 @@ export const authService = {
 
       return {
         success: true,
-        token,
+        token: res.token || token,
         user: session.user || res.user,
       };
     } catch (err: any) {
