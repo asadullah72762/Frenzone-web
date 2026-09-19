@@ -6,6 +6,7 @@ import { Video, ShieldCheck, DollarSign, Users, Award, ArrowRight, ChevronDown, 
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { MarketingCtaButton } from "@/components/marketing/marketing-cta-button";
 
 export default function CreatorsPage() {
   const [dailyHours, setDailyHours] = useState(3);
@@ -55,11 +56,12 @@ export default function CreatorsPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-            <Link href="/creator-apply">
-              <Button size="lg" variant="primary" icon={<ArrowRight className="h-5 w-5" />}>
-                Apply as Creator Now
-              </Button>
-            </Link>
+            <MarketingCtaButton
+              type="creator"
+              defaultText="Apply as Creator Now"
+              defaultHref="/creator-apply"
+              className="inline-flex items-center justify-center h-12 px-6 rounded-xl font-bold text-white bg-brand hover:bg-brand-hover active:bg-brand-active shadow-sm text-base space-x-2"
+            />
             <Link href="#calculator">
               <Button size="lg" variant="secondary">
                 Calculate Earnings
@@ -123,11 +125,14 @@ export default function CreatorsPage() {
                   <p className="text-xs text-brand-soft/80">
                     Includes gifts, tips, and average subscriber retention.
                   </p>
-                  <Link href="/creator-apply" className="block pt-2">
-                    <Button variant="secondary" className="w-full bg-white text-brand hover:bg-white/90">
-                      Start Earning as Creator
-                    </Button>
-                  </Link>
+                  <div className="pt-2">
+                    <MarketingCtaButton
+                      type="creator"
+                      defaultText="Start Earning as Creator"
+                      defaultHref="/creator-apply"
+                      className="w-full inline-flex items-center justify-center h-10 px-4 rounded-xl font-bold bg-white text-brand hover:bg-white/90 shadow-sm text-sm space-x-2"
+                    />
+                  </div>
                 </div>
               </div>
             </Card>

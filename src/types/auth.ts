@@ -15,8 +15,13 @@ export type AuthUser = {
   creatorId?: string;
   agencyId?: string;
   isCreator?: boolean;
+  isCreatorVerified?: boolean;
   isAgencyMember?: boolean;
+  isAgencyVerified?: boolean;
   creatorStatus?: string;
+  agencyStatus?: string;
+  identityApprovalStatus?: string;
+  identityVerified?: boolean;
   agencyMembership?: any;
   profilePicture?: string;
 };

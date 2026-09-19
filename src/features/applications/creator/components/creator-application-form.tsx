@@ -22,6 +22,7 @@ import {
   creatorApplicationService,
   type ApplicationStatusResponse,
 } from "../services/creator-application.service";
+import { authService } from "@/features/auth/services/auth.service";
 
 export function CreatorApplicationForm() {
   const [serverError, setServerError] = useState<string>();
@@ -64,8 +65,29 @@ export function CreatorApplicationForm() {
 
     setIsAuthenticated(true);
     try {
-      const res = await creatorApplicationService.getStatus();
-      setStatusData(res);
+      const [res, session] = await Promise.all([
+        creatorApplicationService.getStatus().catch(() => null),
+        authService.getSession().catch(() => null),
+      ]);
+
+      const isVerifiedUser = Boolean(
+        session?.user?.isCreatorVerified ||
+        session?.user?.isCreator ||
+        session?.user?.creatorStatus === "approved" ||
+        res?.status === "approved"
+      );
+
+      if (isVerifiedUser) {
+        setStatusData({
+          hasApplied: true,
+          status: "approved",
+          complianceStatus: "approved",
+          liveAccess: true,
+          application: res?.application || null,
+        } as any);
+      } else {
+        setStatusData(res);
+      }
 
       // Pre-fill user details if application exists or from cached user
       if (res?.application) {

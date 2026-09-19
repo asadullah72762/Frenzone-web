@@ -255,7 +255,7 @@ export default function CreatorApplicationPage() {
       </div>
 
       {/* ── STATE A: NOT SUBMITTED ── */}
-      {!hasApplied && (
+      {!hasApplied && !isApproved && (
         <Card className="border-brand/20 bg-gradient-to-b from-brand/5 to-surface">
           <CardHeader>
             <div className="flex items-center space-x-3">

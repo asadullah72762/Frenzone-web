@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, Clock, Wallet, DollarSign, UserPlus, Bell, ArrowUpRight, ShieldCheck, Building2 } from "lucide-react";
+import { Users, Clock, Wallet, DollarSign, UserPlus, Bell, ArrowUpRight, ShieldCheck, Building2, AlertCircle } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,11 @@ export function AgencyDashboardView({
     );
   }
 
+  const agencyStatus = data.agency?.status?.toLowerCase() || (data.agency?.isVerified ? "approved" : "pending");
+  const isApproved = agencyStatus === "approved";
+  const isPending = agencyStatus === "pending";
+  const isRejected = agencyStatus === "rejected";
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -44,7 +49,21 @@ export function AgencyDashboardView({
             <h1 className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
               Agency Management Portal
             </h1>
-            <StatusBadge status="ACTIVE" customLabel="Verified Agency" />
+            {isApproved && (
+              <StatusBadge status="ACTIVE" customLabel="Verified Agency" />
+            )}
+            {isPending && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800 border border-amber-200 shadow-2xs">
+                <Clock className="h-3.5 w-3.5 text-amber-600 animate-pulse" />
+                Pending Review
+              </span>
+            )}
+            {isRejected && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-800 border border-red-200 shadow-2xs">
+                <AlertCircle className="h-3.5 w-3.5 text-red-600" />
+                Application Rejected
+              </span>
+            )}
           </div>
           <p className="text-text-secondary mt-1 text-sm">
             Monitor your managed creator network, stream hours, 20% agency commissions, and payout schedules.
@@ -57,6 +76,30 @@ export function AgencyDashboardView({
           </Button>
         </div>
       </div>
+
+      {/* Pending Review Guidance Banner */}
+      {isPending && (
+        <div className="rounded-2xl border border-amber-200/90 bg-gradient-to-r from-amber-50 via-amber-50/70 to-orange-50/40 p-4 sm:p-5 shadow-xs">
+          <div className="flex items-start gap-3.5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 border border-amber-200">
+              <Clock className="h-5 w-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-sm font-bold text-amber-950">
+                  Agency Verification Under Review
+                </h3>
+                <span className="rounded-md bg-amber-200/80 px-2 py-0.5 text-[11px] font-bold text-amber-900 uppercase tracking-wide">
+                  Pending Admin Approval
+                </span>
+              </div>
+              <p className="text-xs text-amber-900/85 mt-1.5 leading-relaxed">
+                Your agency registration for <strong className="font-semibold text-amber-950">{data.agency?.name || "your organization"}</strong> has been received and is currently being verified by Frenzone platform administrators. You can configure your profile and explore management tools. Full creator roster invites and payout disbursements will be authorized once your agency is approved.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

@@ -6,6 +6,7 @@ import { Building2, ShieldCheck, DollarSign, Users, Award, ArrowRight, ChevronDo
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { MarketingCtaButton } from "@/components/marketing/marketing-cta-button";
 
 export default function AgenciesPage() {
   const [creatorsCount, setCreatorsCount] = useState(15);
@@ -51,11 +52,12 @@ export default function AgenciesPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-            <Link href="/agency-apply">
-              <Button size="lg" variant="primary" icon={<ArrowRight className="h-5 w-5" />}>
-                Apply as Agency Partner
-              </Button>
-            </Link>
+            <MarketingCtaButton
+              type="agency"
+              defaultText="Apply as Agency Partner"
+              defaultHref="/agency-apply"
+              className="inline-flex items-center justify-center h-12 px-6 rounded-xl font-bold text-white bg-brand hover:bg-brand-hover active:bg-brand-active shadow-sm text-base space-x-2"
+            />
             <Link href="#agency-calculator">
               <Button size="lg" variant="secondary">
                 Calculate Agency Commission
@@ -119,11 +121,14 @@ export default function AgenciesPage() {
                   <p className="text-xs text-brand-soft/80">
                     Gross Network Revenue: ${grossNetworkRevenue.toLocaleString()} USD
                   </p>
-                  <Link href="/agency-apply" className="block pt-2">
-                    <Button variant="secondary" className="w-full bg-white text-brand hover:bg-white/90">
-                      Become Partner Agency
-                    </Button>
-                  </Link>
+                  <div className="pt-2">
+                    <MarketingCtaButton
+                      type="agency"
+                      defaultText="Become Partner Agency"
+                      defaultHref="/agency-apply"
+                      className="w-full inline-flex items-center justify-center h-10 px-4 rounded-xl font-bold bg-white text-brand hover:bg-white/90 shadow-sm text-sm space-x-2"
+                    />
+                  </div>
                 </div>
               </div>
             </Card>

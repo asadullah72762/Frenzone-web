@@ -24,17 +24,22 @@ export function AgencyApplicationForm() {
   });
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const [existingSession, setExistingSession] = useState<any>(null);
+  const [isLoadingSession, setIsLoadingSession] = useState(true);
+
   useEffect(() => {
     authService
       .getSession()
       .then((session) => {
+        setIsLoadingSession(false);
         if (session?.user) {
+          setExistingSession(session.user);
           if (session.user.displayName) setValue("contactName", session.user.displayName);
           if (session.user.email) setValue("email", session.user.email);
         }
       })
       .catch(() => {
-        // Unauthenticated visitor
+        setIsLoadingSession(false);
       });
   }, [setValue]);
 
@@ -49,6 +54,60 @@ export function AgencyApplicationForm() {
       );
     }
   };
+
+  if (existingSession?.isAgencyVerified || existingSession?.agencyMembership?.agency_id?.status === "approved") {
+    return (
+      <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-surface to-teal-50/30 p-8 shadow-sm space-y-4">
+        <div className="flex items-center space-x-3">
+          <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
+            Agency Verified & Active
+          </span>
+        </div>
+        <div>
+          <h3 className="text-2xl font-bold text-text-primary">
+            {existingSession?.agencyMembership?.agency_id?.agency_name || "Your Agency"} is Approved
+          </h3>
+          <p className="mt-2 text-sm text-text-secondary leading-relaxed">
+            Your organization is an active, verified agency partner on Frenzone. You have access to the agency dashboard, creator talent roster, and commission settlements.
+          </p>
+        </div>
+        <div className="pt-2 flex items-center space-x-3">
+          <Link
+            href="/agency"
+            className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-95 transition-all shadow-sm"
+          >
+            Open Agency Workspace →
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (existingSession?.agencyStatus === "pending" || existingSession?.agencyMembership?.agency_id?.status === "pending") {
+    return (
+      <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-8 shadow-sm space-y-4">
+        <div className="flex items-center space-x-3">
+          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">
+            Application Under Review
+          </span>
+        </div>
+        <div>
+          <h3 className="text-xl font-bold text-text-primary">Your Agency Application is in Review</h3>
+          <p className="mt-2 text-sm text-text-secondary leading-relaxed">
+            Our compliance and platform management teams are verifying your business documents. You will be notified as soon as review completes.
+          </p>
+        </div>
+        <div className="pt-2 flex items-center space-x-3">
+          <Link
+            href="/agency"
+            className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-surface border border-border text-text-primary font-bold text-sm hover:bg-surface-muted transition-all shadow-xs"
+          >
+            Check Agency Portal Status →
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (isSuccess) {
     return (

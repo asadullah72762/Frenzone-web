@@ -1,14 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { User, Building2, Calculator, ArrowRight } from "lucide-react";
+import { User, Building2, Calculator, ArrowRight, Radio } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/formatting";
+import { authService } from "@/features/auth/services/auth.service";
 
 export function HomeCalculatorTabs() {
   const [tab, setTab] = useState<"CREATOR" | "AGENCY">("CREATOR");
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    authService
+      .getSession()
+      .then((s) => setSession(s))
+      .catch(() => setSession(null));
+  }, []);
+
+  const user = session?.user;
+  const isCreatorVerified = Boolean(user?.isCreatorVerified || user?.isCreator || user?.creatorStatus === "approved");
+  const isAgencyVerified = Boolean(user?.isAgencyVerified || user?.agencyMembership?.agency_id?.status === "approved");
 
   // Creator state
   const [dailyHours, setDailyHours] = useState(4);
@@ -99,11 +112,19 @@ export function HomeCalculatorTabs() {
             <p className="text-xs text-brand-soft/80">
               Based on 80% creator gift split & average viewer retention.
             </p>
-            <Link href="/creator-apply" className="block pt-2">
-              <Button variant="secondary" className="w-full bg-white text-brand hover:bg-white/90">
-                Apply as Creator
-              </Button>
-            </Link>
+            {isCreatorVerified ? (
+              <Link href="/creator" className="block pt-2">
+                <Button variant="secondary" className="w-full bg-white text-brand hover:bg-white/90">
+                  Open Creator Studio →
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/creator-apply" className="block pt-2">
+                <Button variant="secondary" className="w-full bg-white text-brand hover:bg-white/90">
+                  Apply as Creator
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       ) : (
@@ -149,11 +170,19 @@ export function HomeCalculatorTabs() {
             <p className="text-xs text-brand-soft/80">
               Gross Roster Revenue: ${agencyGrossRevenue.toLocaleString()} USD
             </p>
-            <Link href="/agency-apply" className="block pt-2">
-              <Button variant="secondary" className="w-full bg-white text-brand hover:bg-white/90">
-                Apply as Partner Agency
-              </Button>
-            </Link>
+            {isAgencyVerified ? (
+              <Link href="/agency" className="block pt-2">
+                <Button variant="secondary" className="w-full bg-white text-brand hover:bg-white/90">
+                  Open Agency Workspace →
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/agency-apply" className="block pt-2">
+                <Button variant="secondary" className="w-full bg-white text-brand hover:bg-white/90">
+                  Apply as Partner Agency
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       )}

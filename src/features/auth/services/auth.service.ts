@@ -41,9 +41,23 @@ export const authService = {
         email: res.user.email,
         creatorId: res.user.creatorApplicationId,
         agencyId: res.user.agencyMembership?.agency_id?._id,
-        isCreator: Boolean(res.user.isCreator),
+        isCreator: Boolean(res.user.isCreator || res.user.isCreatorVerified),
+        isCreatorVerified: Boolean(
+          res.user.isCreatorVerified ||
+          res.user.isCreator ||
+          res.user.creatorStatus === "approved" ||
+          res.user.identifyApprovalStatus === "approved" ||
+          res.user.isVerified
+        ),
         isAgencyMember: Boolean(res.user.isAgencyMember),
+        isAgencyVerified: Boolean(
+          res.user.isAgencyVerified ||
+          res.user.agencyMembership?.agency_id?.status === "approved"
+        ),
         creatorStatus: res.user.creatorStatus,
+        agencyStatus: res.user.agencyStatus || res.user.agencyMembership?.agency_id?.status || "none",
+        identityApprovalStatus: res.user.identityApprovalStatus,
+        identityVerified: Boolean(res.user.identityVerified),
         agencyMembership: res.user.agencyMembership,
         profilePicture: res.user.profilePicture,
       },

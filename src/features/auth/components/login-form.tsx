@@ -54,20 +54,19 @@ export function LoginForm() {
 
   const handlePortalRedirect = (user: any) => {
     if (targetPortal === "AGENCY") {
-      if (user.isAgencyMember || user.role?.startsWith("AGENCY_")) {
+      if (user.isAgencyMember || user.isAgencyVerified || user.role?.startsWith("AGENCY_") || user.agencyStatus === "approved") {
         router.push("/agency");
       } else {
         // User intended to log in to Agency portal but hasn't created their agency yet.
-        // Seamlessly route to Agency Onboarding to complete agency profile.
         router.push("/agency-apply");
       }
     } else {
       // Target is CREATOR
-      if (user.isAgencyMember && !user.isCreator && user.creatorStatus !== "approved") {
+      if ((user.isAgencyMember || user.isAgencyVerified) && !user.isCreator && !user.isCreatorVerified && user.creatorStatus !== "approved") {
         setErrorMsg("Access denied. Your account is registered strictly as an Agency. Please select the Agency Portal.");
         return;
       }
-      if (user.isCreator || user.creatorStatus === "approved" || user.creatorStatus === "pending") {
+      if (user.isCreator || user.isCreatorVerified || user.creatorStatus === "approved" || user.creatorStatus === "pending") {
         router.push("/creator");
       } else {
         // Standard registered user: route to Creator apply page to initiate onboarding

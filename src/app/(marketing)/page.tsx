@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { HomeHero } from "@/components/marketing/home-hero";
 import { HomeCalculatorTabs } from "@/components/marketing/home-calculator-tabs";
+import { MarketingCtaButton } from "@/components/marketing/marketing-cta-button";
 
 export const metadata: Metadata = {
   title: "Frenzone Creator & Agency Platform | Live Streaming & Talent Management",
@@ -99,13 +100,12 @@ export default function HomePage() {
             </div>
 
             <div className="pt-6 flex items-center gap-3">
-              <Link
-                href="/creator-apply"
+              <MarketingCtaButton
+                type="creator"
+                defaultText="Apply as Creator"
+                defaultHref="/creator-apply"
                 className="flex-1 inline-flex items-center justify-center h-10 px-4 rounded-lg font-bold text-white bg-brand hover:bg-brand-hover active:bg-brand-active shadow-sm text-sm space-x-2"
-              >
-                <span>Apply as Creator</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+              />
               <Link
                 href="/creators"
                 className="inline-flex items-center justify-center h-10 px-4 rounded-lg font-semibold text-text-primary border border-border bg-surface hover:bg-surface-muted text-sm"
@@ -149,13 +149,12 @@ export default function HomePage() {
             </div>
 
             <div className="pt-6 flex items-center gap-3">
-              <Link
-                href="/agency-apply"
+              <MarketingCtaButton
+                type="agency"
+                defaultText="Agency Partnership"
+                defaultHref="/agency-apply"
                 className="flex-1 inline-flex items-center justify-center h-10 px-4 rounded-lg font-bold text-white bg-brand hover:bg-brand-hover active:bg-brand-active shadow-sm text-sm space-x-2"
-              >
-                <span>Agency Partnership</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+              />
               <Link
                 href="/agencies"
                 className="inline-flex items-center justify-center h-10 px-4 rounded-lg font-semibold text-text-primary border border-border bg-surface hover:bg-surface-muted text-sm"
@@ -237,18 +236,18 @@ export default function HomePage() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-            <Link
-              href="/creator-apply"
-              className="inline-flex items-center justify-center h-12 px-6 rounded-xl font-bold text-brand bg-white hover:bg-white/90 text-base shadow-sm"
-            >
-              Apply as Creator
-            </Link>
-            <Link
-              href="/agency-apply"
-              className="inline-flex items-center justify-center h-12 px-6 rounded-xl font-bold text-white border-2 border-white bg-transparent hover:bg-white/10 text-base"
-            >
-              Agency Partnership
-            </Link>
+            <MarketingCtaButton
+              type="creator"
+              defaultText="Apply as Creator"
+              defaultHref="/creator-apply"
+              className="inline-flex items-center justify-center h-12 px-6 rounded-xl font-bold text-brand bg-white hover:bg-white/90 text-base shadow-sm space-x-2"
+            />
+            <MarketingCtaButton
+              type="agency"
+              defaultText="Agency Partnership"
+              defaultHref="/agency-apply"
+              className="inline-flex items-center justify-center h-12 px-6 rounded-xl font-bold text-white border-2 border-white bg-transparent hover:bg-white/10 text-base space-x-2"
+            />
           </div>
         </div>
       </Container>

@@ -15,6 +15,12 @@ export type AgencyDashboard = {
     type: "info" | "warning" | "success";
     timestamp: string;
   }[];
+  agency?: {
+    id: string;
+    name: string;
+    status: "pending" | "approved" | "rejected" | "suspended" | string;
+    isVerified: boolean;
+  };
 };
 
 export type AgencyProfile = {

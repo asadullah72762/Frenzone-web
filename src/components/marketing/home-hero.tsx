@@ -9,6 +9,18 @@ import { authService } from "@/features/auth/services/auth.service";
 export function HomeHero() {
   const router = useRouter();
   const [demoLoading, setDemoLoading] = useState<"CREATOR" | "AGENCY" | null>(null);
+  const [session, setSession] = useState<any>(null);
+
+  useState(() => {
+    authService
+      .getSession()
+      .then((s) => setSession(s))
+      .catch(() => setSession(null));
+  });
+
+  const user = session?.user;
+  const isCreatorVerified = Boolean(user?.isCreatorVerified || user?.isCreator || user?.creatorStatus === "approved");
+  const isAgencyVerified = Boolean(user?.isAgencyVerified || user?.agencyMembership?.agency_id?.status === "approved");
 
   const handleDemoLaunch = async (role: "CREATOR" | "AGENCY") => {
     setDemoLoading(role);
@@ -51,27 +63,50 @@ export function HomeHero() {
               The authoritative unified web platform connecting live streaming creators, agency partnerships, guaranteed compliance goals, and digital coin commerce.
             </p>
 
-            {/* CTA Group with Vibrant Multi-Tone Gradient */}
+            {/* CTA Group with Dynamic Awareness for Verified Users */}
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2">
-              <Link
-                href="/creator-apply"
-                className="inline-flex items-center justify-center h-12 px-6 rounded-xl font-extrabold text-white bg-gradient-to-r from-brand via-brand-hover to-cta hover:opacity-95 active:scale-[0.98] shadow-md transition-all text-base space-x-2"
-              >
-                <span>Apply as Creator</span>
-                <ArrowRight className="h-5 w-5" />
-              </Link>
+              {isCreatorVerified ? (
+                <Link
+                  href="/creator"
+                  className="inline-flex items-center justify-center h-12 px-6 rounded-xl font-extrabold text-white bg-gradient-to-r from-brand via-brand-hover to-cta hover:opacity-95 active:scale-[0.98] shadow-md transition-all text-base space-x-2"
+                >
+                  <Video className="h-5 w-5" />
+                  <span>Open Creator Studio</span>
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+              ) : (
+                <Link
+                  href="/creator-apply"
+                  className="inline-flex items-center justify-center h-12 px-6 rounded-xl font-extrabold text-white bg-gradient-to-r from-brand via-brand-hover to-cta hover:opacity-95 active:scale-[0.98] shadow-md transition-all text-base space-x-2"
+                >
+                  <span>Apply as Creator</span>
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+              )}
 
-              <Link
-                href="/agency-apply"
-                className="inline-flex items-center justify-center h-12 px-6 rounded-xl font-bold text-text-primary border border-border bg-surface hover:bg-surface-muted transition-all text-base space-x-2 shadow-sm"
-              >
-                <Building2 className="h-5 w-5 text-brand" />
-                <span>Agency Partnership</span>
-              </Link>
+              {isAgencyVerified ? (
+                <Link
+                  href="/agency"
+                  className="inline-flex items-center justify-center h-12 px-6 rounded-xl font-bold text-text-primary border border-border bg-surface hover:bg-surface-muted transition-all text-base space-x-2 shadow-sm"
+                >
+                  <Building2 className="h-5 w-5 text-brand" />
+                  <span>Agency Workspace</span>
+                </Link>
+              ) : (
+                <Link
+                  href="/agency-apply"
+                  className="inline-flex items-center justify-center h-12 px-6 rounded-xl font-bold text-text-primary border border-border bg-surface hover:bg-surface-muted transition-all text-base space-x-2 shadow-sm"
+                >
+                  <Building2 className="h-5 w-5 text-brand" />
+                  <span>Agency Partnership</span>
+                </Link>
+              )}
 
-              <Link href="/login" className="text-xs font-bold text-text-muted hover:text-brand transition-colors pt-2 sm:pt-0 sm:pl-2">
-                Sign In to Workspace →
-              </Link>
+              {!user && (
+                <Link href="/login" className="text-xs font-bold text-text-muted hover:text-brand transition-colors pt-2 sm:pt-0 sm:pl-2">
+                  Sign In to Workspace →
+                </Link>
+              )}
             </div>
 
             {/* 1-Click Instant Live Demo Bar */}

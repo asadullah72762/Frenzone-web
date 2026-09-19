@@ -221,9 +221,19 @@ export function PortalShell({ product, links, children }: Props) {
                   <Button variant="primary" className="flex-1" onClick={() => router.push("/creator")}>
                     Go to Creator Portal
                   </Button>
-                  <Button variant="outline" className="flex-1" onClick={() => router.push("/agency-apply")}>
-                    Apply as Agency
-                  </Button>
+                  {session?.user?.isAgencyVerified ? (
+                    <Button variant="outline" className="flex-1" onClick={() => router.push("/agency")}>
+                      Open Agency Portal
+                    </Button>
+                  ) : session?.user?.agencyStatus === "pending" ? (
+                    <Button variant="outline" className="flex-1" onClick={() => router.push("/agency")}>
+                      Agency Application in Review
+                    </Button>
+                  ) : (
+                    <Button variant="outline" className="flex-1" onClick={() => router.push("/agency-apply")}>
+                      Apply as Agency
+                    </Button>
+                  )}
                 </div>
               </div>
             ) : isBlockedFromCreator ? (
@@ -242,9 +252,19 @@ export function PortalShell({ product, links, children }: Props) {
                   <Button variant="primary" className="flex-1" onClick={() => router.push("/agency")}>
                     Go to Agency Portal
                   </Button>
-                  <Button variant="outline" className="flex-1" onClick={() => router.push("/creator-apply")}>
-                    Apply for Creator Program
-                  </Button>
+                  {session?.user?.isCreatorVerified ? (
+                    <Button variant="outline" className="flex-1" onClick={() => router.push("/creator")}>
+                      Open Creator Hub
+                    </Button>
+                  ) : session?.user?.creatorStatus === "pending" ? (
+                    <Button variant="outline" className="flex-1" onClick={() => router.push("/creator/application")}>
+                      Creator Review in Progress
+                    </Button>
+                  ) : (
+                    <Button variant="outline" className="flex-1" onClick={() => router.push("/creator-apply")}>
+                      Apply for Creator Program
+                    </Button>
+                  )}
                 </div>
               </div>
             ) : (
