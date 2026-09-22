@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Container } from "@/components/layout/container";
 import { LoginForm } from "@/features/auth/components/login-form";
 
 export const metadata: Metadata = {
@@ -9,17 +9,16 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-md items-center px-4 py-10">
-      <section className="bg-surface w-full rounded-2xl border border-border p-6 sm:p-8 shadow-sm space-y-6">
-        <div className="space-y-1 text-center">
-          <Link href="/" className="inline-block text-brand font-black text-2xl tracking-tight mb-1 hover:opacity-90 transition-opacity">
-            Frenzone
-          </Link>
-          <h1 className="text-2xl font-bold text-text-primary tracking-tight">Welcome back</h1>
-          <p className="text-xs text-text-secondary">Sign in to your workspace</p>
-        </div>
+    <Container className="py-16 md:py-24">
+      <p className="text-sm font-bold uppercase tracking-[0.2em] text-text-muted text-center">One Frenzone account</p>
+      <h1 className="mt-3 text-4xl sm:text-5xl font-bold text-text-primary text-center">Sign in to your portal.</h1>
+      <p className="mt-4 max-w-xl mx-auto text-center text-text-secondary leading-relaxed">
+        Use the same Frenzone account in the mobile app and portal. Your approved Creator or Agency role decides which workspace opens.
+      </p>
+
+      <div className="mt-10 max-w-lg mx-auto rounded-3xl border border-border bg-surface p-8 shadow-sm">
         <LoginForm />
-      </section>
-    </main>
+      </div>
+    </Container>
   );
 }

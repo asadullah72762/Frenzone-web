@@ -73,12 +73,8 @@ export function PortalShell({ product, links, children }: Props) {
       <header className="bg-surface/90 backdrop-blur-md sticky top-0 z-40 border-b border-border">
         <Container className="flex h-16 items-center justify-between">
           <div className="flex items-center space-x-3">
-            <Link href="/" className="flex items-center">
-              <img
-                src="/assets/frenzone-logo.png"
-                alt="Frenzone Live"
-                className="h-7 w-auto object-contain"
-              />
+            <Link href="/" className="text-brand font-black text-xl tracking-tight flex items-center space-x-2">
+              <span>Frenzone</span>
             </Link>
             <span className="text-border text-lg font-light">/</span>
             <span className="rounded-full bg-gradient-to-r from-violet-50 via-indigo-50 to-pink-50 px-3 py-1 text-xs font-extrabold text-brand border border-brand/20">

@@ -1,42 +1,35 @@
 import Link from "next/link";
 import { Container } from "./container";
-import { ShieldCheck } from "lucide-react";
 
 export function MarketingFooter() {
   return (
-    <footer className="bg-surface text-text-secondary mt-auto border-t border-border py-12 text-sm">
-      <Container className="space-y-8">
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-2">
-            <Link href="/" className="inline-block">
-              <img
-                src="/assets/frenzone-logo.png"
-                alt="Frenzone Live"
-                className="h-8 md:h-9 w-auto object-contain"
-              />
-            </Link>
-            <p className="text-xs text-text-muted max-w-sm">
-              Creator and agency operations for Frenzone Live. Empowering streamers and talent management worldwide.
-            </p>
+    <footer className="bg-[#0e1320] text-white mt-auto">
+      <Container className="py-12 flex flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2.5 rounded-2xl bg-white px-4 py-3">
+            <svg viewBox="0 0 40 40" className="h-7 w-7 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 2a18 18 0 1 0 0 36" stroke="var(--color-brand)" strokeWidth="4.5" strokeLinecap="round" />
+              <path d="M20 10a10 10 0 1 0 0 20" stroke="var(--color-brand)" strokeWidth="4.5" strokeLinecap="round" />
+            </svg>
+            <span className="leading-none">
+              <span className="block text-lg font-black tracking-tight text-text-primary">
+                FREN <span className="text-brand">ZONE</span>
+              </span>
+              <span className="block text-[9px] font-extrabold tracking-[0.25em] text-text-primary">LIVE</span>
+            </span>
           </div>
-
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold text-text-secondary">
-            <Link href="/creators" className="hover:text-brand transition-colors">Creators</Link>
-            <Link href="/agencies" className="hover:text-brand transition-colors">Agencies</Link>
-            <Link href="/coins" className="hover:text-brand transition-colors">Buy Coins</Link>
-            <Link href="/creator-program-terms" className="hover:text-brand transition-colors">Creator Terms</Link>
-            <Link href="/agency-program-terms" className="hover:text-brand transition-colors">Agency Terms</Link>
-            <Link href="/login" className="hover:text-brand transition-colors">Portal Sign In</Link>
-          </div>
+          <p className="text-sm text-white/70 max-w-xs">Creator and agency operations for Frenzone Live.</p>
         </div>
 
-        <div className="pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-text-muted">
-          <p>© {new Date().getFullYear()} Frenzone Live. All rights reserved.</p>
-          <div className="flex items-center space-x-2">
-            <ShieldCheck className="h-4 w-4 text-success" />
-            <span>Production SSO, payments and Agora streaming verified.</span>
-          </div>
+        <div className="flex flex-wrap gap-6 text-sm font-semibold text-white/85">
+          <Link href="/creators" className="hover:text-brand transition-colors">Creators</Link>
+          <Link href="/agencies" className="hover:text-brand transition-colors">Agencies</Link>
+          <Link href="/coins" className="hover:text-brand transition-colors">Coins</Link>
+          <Link href="/login" className="hover:text-brand transition-colors">Portal</Link>
         </div>
+      </Container>
+      <Container className="pb-8 text-xs text-white/50">
+        © {new Date().getFullYear()} Frenzone Live · Production SSO, payments and Agora streaming require external credentials.
       </Container>
     </footer>
   );

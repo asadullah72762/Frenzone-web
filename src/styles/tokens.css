@@ -1,17 +1,17 @@
 :root {
-  --color-brand: #ff9800;
-  --color-brand-accent: #ff3d00;
+  --color-brand: #f7941d;
+  --color-brand-accent: #f7941d;
   --color-brand-pink: #ff3d00;
-  --color-brand-hover: #f57c00;
-  --color-brand-active: #e65100;
-  --color-brand-soft: #fff3e0;
+  --color-brand-hover: #e6830f;
+  --color-brand-active: #d6790e;
+  --color-brand-soft: #fef1e0;
   --color-cta: #ff3d00;
   --color-cta-hover: #e63600;
   --gradient-brand: linear-gradient(135deg, #ff9800 0%, #ff7a00 50%, #ff3d00 100%);
-  --color-background: #f8f9fa;
+  --color-background: #ffffff;
   --color-surface: #ffffff;
   --color-surface-elevated: #ffffff;
-  --color-surface-muted: #f8f9fa;
+  --color-surface-muted: #f5f5f1;
   --color-text-primary: #1f2937;
   --color-text-secondary: #4b5563;
   --color-text-muted: #6b7280;

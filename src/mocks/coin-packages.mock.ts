@@ -2,6 +2,7 @@ export interface CoinPackage {
   id: string;
   name: string;
   coinAmount: number;
+  bonusCoins?: number;
   originalPrice: { amount: string; currency: string };
   finalPrice: { amount: string; currency: string };
   discountLabel: string;
@@ -9,56 +10,61 @@ export interface CoinPackage {
   isBestValue?: boolean;
 }
 
-// 1,000 Coins = $12.00 USD ($0.012 / coin final with 10% web discount)
 export const coinPackagesMock: CoinPackage[] = [
   {
     id: "coins-100",
-    name: "100 Coins",
+    name: "Starter Pack",
     coinAmount: 100,
-    originalPrice: { amount: "1.33", currency: "USD" },
-    finalPrice: { amount: "1.20", currency: "USD" },
-    discountLabel: "10% OFF",
+    bonusCoins: 0,
+    originalPrice: { amount: "1.99", currency: "USD" },
+    finalPrice: { amount: "1.79", currency: "USD" },
+    discountLabel: "10% Website Discount",
   },
   {
     id: "coins-500",
-    name: "500 Coins",
+    name: "Popular Pack",
     coinAmount: 500,
-    originalPrice: { amount: "6.67", currency: "USD" },
-    finalPrice: { amount: "6.00", currency: "USD" },
-    discountLabel: "10% OFF",
+    bonusCoins: 50,
+    originalPrice: { amount: "8.99", currency: "USD" },
+    finalPrice: { amount: "8.09", currency: "USD" },
+    discountLabel: "10% Website Discount",
     isPopular: true,
   },
   {
     id: "coins-1000",
-    name: "1,000 Coins",
+    name: "Creator Fan Pack",
     coinAmount: 1000,
-    originalPrice: { amount: "13.33", currency: "USD" },
-    finalPrice: { amount: "12.00", currency: "USD" },
-    discountLabel: "10% OFF",
-    isBestValue: true,
+    bonusCoins: 120,
+    originalPrice: { amount: "16.99", currency: "USD" },
+    finalPrice: { amount: "15.29", currency: "USD" },
+    discountLabel: "10% Website Discount",
   },
   {
     id: "coins-2500",
-    name: "2,500 Coins",
+    name: "Pro Supporter Pack",
     coinAmount: 2500,
-    originalPrice: { amount: "33.33", currency: "USD" },
-    finalPrice: { amount: "30.00", currency: "USD" },
-    discountLabel: "10% OFF",
+    bonusCoins: 350,
+    originalPrice: { amount: "39.99", currency: "USD" },
+    finalPrice: { amount: "35.99", currency: "USD" },
+    discountLabel: "10% Website Discount",
+    isBestValue: true,
   },
   {
     id: "coins-5000",
-    name: "5,000 Coins",
+    name: "VIP VIP Pack",
     coinAmount: 5000,
-    originalPrice: { amount: "66.67", currency: "USD" },
-    finalPrice: { amount: "60.00", currency: "USD" },
-    discountLabel: "10% OFF",
+    bonusCoins: 800,
+    originalPrice: { amount: "79.99", currency: "USD" },
+    finalPrice: { amount: "71.99", currency: "USD" },
+    discountLabel: "10% Website Discount",
   },
   {
     id: "coins-10000",
-    name: "10,000 Coins",
+    name: "Legendary Whale Pack",
     coinAmount: 10000,
-    originalPrice: { amount: "133.33", currency: "USD" },
-    finalPrice: { amount: "120.00", currency: "USD" },
-    discountLabel: "10% OFF",
+    bonusCoins: 2000,
+    originalPrice: { amount: "149.99", currency: "USD" },
+    finalPrice: { amount: "134.99", currency: "USD" },
+    discountLabel: "10% Website Discount",
   },
 ];

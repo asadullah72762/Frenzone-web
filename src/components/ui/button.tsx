@@ -24,9 +24,9 @@ const variantStyles = {
 };
 
 const sizeStyles = {
-  sm: "h-8 px-3 text-xs rounded-md",
-  md: "h-10 px-4 text-sm rounded-lg",
-  lg: "h-12 px-6 text-base rounded-xl font-semibold",
+  sm: "h-8 px-3 text-xs rounded-full",
+  md: "h-10 px-4 text-sm rounded-full",
+  lg: "h-12 px-6 text-base rounded-full font-semibold",
 };
 
 export function Button({

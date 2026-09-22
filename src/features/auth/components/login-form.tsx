@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { LogIn, Eye, EyeOff, ShieldCheck, Video, Building2, Zap } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Eye, EyeOff, Video, Building2 } from "lucide-react";
 import { GoogleIcon } from "@/components/ui/google-icon";
 import { authService } from "@/features/auth/services/auth.service";
 
@@ -124,36 +123,30 @@ export function LoginForm() {
 
   return (
     <div className="space-y-5">
-      {/* Workspace Type Selector */}
-      <div className="grid grid-cols-2 p-1 bg-surface-muted rounded-xl border border-border">
+      {/* Workspace type — kept functional (routes agency sign-ins correctly), shown as a compact pill row */}
+      <div className="inline-flex items-center gap-1 rounded-full border border-border p-1 text-xs font-bold">
         <button
           type="button"
           onClick={() => setTargetPortal("CREATOR")}
-          className={`py-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-            targetPortal === "CREATOR"
-              ? "bg-surface text-text-primary shadow-xs font-bold"
-              : "text-text-muted hover:text-text-primary"
+          className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${
+            targetPortal === "CREATOR" ? "bg-text-primary text-white" : "text-text-muted hover:text-text-primary"
           }`}
         >
-          <Video className="h-3.5 w-3.5 text-brand" />
-          <span>Creator</span>
+          <Video className="h-3.5 w-3.5" /> Creator
         </button>
         <button
           type="button"
           onClick={() => setTargetPortal("AGENCY")}
-          className={`py-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-            targetPortal === "AGENCY"
-              ? "bg-surface text-text-primary shadow-xs font-bold"
-              : "text-text-muted hover:text-text-primary"
+          className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${
+            targetPortal === "AGENCY" ? "bg-text-primary text-white" : "text-text-muted hover:text-text-primary"
           }`}
         >
-          <Building2 className="h-3.5 w-3.5 text-brand" />
-          <span>Agency</span>
+          <Building2 className="h-3.5 w-3.5" /> Agency
         </button>
       </div>
 
       {errorMsg ? (
-        <div className="rounded-lg bg-red-50 p-3 border border-red-200 text-xs text-danger font-medium">
+        <div className="rounded-xl bg-danger-soft p-3 border border-danger/20 text-sm text-danger font-medium">
           {errorMsg}
         </div>
       ) : null}
@@ -163,47 +156,57 @@ export function LoginForm() {
         type="button"
         onClick={handleGoogleSignIn}
         disabled={isGoogleSubmitting || isSubmitting}
-        className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-border bg-surface hover:bg-surface-muted active:scale-[0.99] text-xs font-semibold text-text-primary transition-all shadow-xs hover:shadow-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl border border-border bg-surface hover:bg-surface-muted text-sm font-bold text-text-primary transition-all disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {isGoogleSubmitting ? (
           <div className="h-4 w-4 border-2 border-brand border-t-transparent rounded-full animate-spin" />
         ) : (
           <GoogleIcon className="h-4 w-4 shrink-0" />
         )}
-        <span>{isGoogleSubmitting ? "Connecting..." : "Continue with Google"}</span>
+        <span>{isGoogleSubmitting ? "Connecting…" : "Continue with Google"}</span>
+      </button>
+
+      {/* Apple sign-in is not wired to a backend provider yet — shown to match the brand's reference
+          design, but kept disabled rather than faking a working flow. */}
+      <button
+        type="button"
+        disabled
+        title="Apple sign-in is not available yet"
+        className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl border border-border bg-surface text-sm font-bold text-text-primary/40 cursor-not-allowed"
+      >
+        <span></span>
+        <span>Continue with Apple</span>
       </button>
 
       {/* Divider */}
-      <div className="relative flex items-center justify-center">
+      <div className="relative flex items-center justify-center py-1">
         <div className="border-t border-border w-full" />
-        <span className="bg-surface px-2.5 text-[11px] font-medium text-text-muted absolute">
-          or
-        </span>
+        <span className="bg-surface px-3 text-xs font-medium text-text-muted absolute">or use email and password</span>
       </div>
 
       {/* Email / Password Form */}
-      <form onSubmit={handleSubmit} className="space-y-3.5">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="text-xs font-medium text-text-secondary block mb-1">Email</label>
+          <label className="text-sm font-bold text-text-primary block mb-1.5">Email</label>
           <input
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-lg border border-border bg-surface px-3.5 py-2 text-xs text-text-primary outline-none focus:border-brand transition-colors"
+            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text-primary outline-none focus:border-brand transition-colors"
             placeholder="name@example.com"
           />
         </div>
 
         <div>
-          <label className="text-xs font-medium text-text-secondary block mb-1">Password</label>
+          <label className="text-sm font-bold text-text-primary block mb-1.5">Password</label>
           <div className="relative flex items-center">
             <input
               type={showPassword ? "text" : "password"}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-border bg-surface px-3.5 py-2 pr-10 text-xs text-text-primary outline-none focus:border-brand transition-colors"
+              className="w-full rounded-xl border border-border bg-surface px-4 py-3 pr-11 text-sm text-text-primary outline-none focus:border-brand transition-colors"
               placeholder="••••••••"
             />
             <button
@@ -213,65 +216,54 @@ export function LoginForm() {
                 e.stopPropagation();
                 setShowPassword((prev) => !prev);
               }}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors cursor-pointer p-1"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors cursor-pointer p-1"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? (
-                <EyeOff className="h-3.5 w-3.5 text-brand" />
-              ) : (
-                <Eye className="h-3.5 w-3.5" />
-              )}
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
         </div>
 
-        <Button
+        <button
           type="submit"
-          variant="primary"
-          className="w-full text-xs"
-          isLoading={isSubmitting}
-          icon={<LogIn className="h-3.5 w-3.5" />}
+          disabled={isSubmitting}
+          className="w-full rounded-full bg-brand py-3.5 text-base font-bold text-white shadow-sm hover:bg-brand-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          Sign in
-        </Button>
+          {isSubmitting ? "Signing in…" : "Sign in"}
+        </button>
+
+        <p className="text-center text-sm text-text-muted">No separate portal username is created.</p>
       </form>
 
-      {/* Compact Demo Quick-Switch */}
-      <div className="pt-3 border-t border-border">
-        <div className="flex items-center justify-between gap-2">
-          <span className="flex items-center gap-1 text-[11px] font-medium text-text-secondary">
-            <Zap className="h-3 w-3 text-brand" />
-            Quick demo:
-          </span>
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => handleDemoQuickSwitch("CREATOR")}
-              disabled={isDemoSubmitting !== null || isSubmitting || isGoogleSubmitting}
-              className="px-2.5 py-1 rounded-md bg-surface-muted hover:bg-brand-soft/60 text-[11px] font-medium text-text-primary hover:text-brand border border-border transition-colors cursor-pointer disabled:opacity-50"
-            >
-              {isDemoSubmitting === "CREATOR" ? "Loading..." : "Creator"}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleDemoQuickSwitch("AGENCY")}
-              disabled={isDemoSubmitting !== null || isSubmitting || isGoogleSubmitting}
-              className="px-2.5 py-1 rounded-md bg-surface-muted hover:bg-brand-soft/60 text-[11px] font-medium text-text-primary hover:text-brand border border-border transition-colors cursor-pointer disabled:opacity-50"
-            >
-              {isDemoSubmitting === "AGENCY" ? "Loading..." : "Agency"}
-            </button>
-          </div>
+      {/* Demo quick-switch kept available, low-key */}
+      <div className="pt-4 border-t border-border flex items-center justify-between gap-2 text-xs font-semibold text-text-muted">
+        <span>Quick demo:</span>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => handleDemoQuickSwitch("CREATOR")}
+            disabled={isDemoSubmitting !== null || isSubmitting || isGoogleSubmitting}
+            className="text-brand hover:underline disabled:opacity-50"
+          >
+            {isDemoSubmitting === "CREATOR" ? "Loading…" : "Creator"}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDemoQuickSwitch("AGENCY")}
+            disabled={isDemoSubmitting !== null || isSubmitting || isGoogleSubmitting}
+            className="text-brand hover:underline disabled:opacity-50"
+          >
+            {isDemoSubmitting === "AGENCY" ? "Loading…" : "Agency"}
+          </button>
         </div>
       </div>
 
-      <div className="text-center">
-        <p className="text-xs text-text-muted">
-          Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-brand font-semibold hover:underline">
-            Sign up
-          </Link>
-        </p>
-      </div>
+      <p className="text-center text-xs text-text-muted">
+        Don&apos;t have an account?{" "}
+        <Link href="/signup" className="text-brand font-semibold hover:underline">
+          Sign up
+        </Link>
+      </p>
     </div>
   );
 }
