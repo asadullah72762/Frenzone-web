@@ -18,8 +18,8 @@ import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { HomeHero } from "@/components/marketing/home-hero";
-import { HomeCalculatorTabs } from "@/components/marketing/home-calculator-tabs";
 import { MarketingCtaButton } from "@/components/marketing/marketing-cta-button";
+import { PkBattlesGallery } from "@/components/marketing/pk-battles-gallery";
 
 export const metadata: Metadata = {
   title: "Frenzone Creator & Agency Platform | Live Streaming & Talent Management",
@@ -73,7 +73,7 @@ export default function HomePage() {
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-soft text-brand font-bold">
                   <Video className="h-6 w-6" />
                 </div>
-                <span className="rounded-full bg-brand-soft px-3 py-1 text-xs font-bold text-brand">80% Creator Split</span>
+                <span className="rounded-full bg-brand-soft px-3 py-1 text-xs font-bold text-brand">Creator Program</span>
               </div>
 
               <div>
@@ -86,15 +86,19 @@ export default function HomePage() {
               <ul className="space-y-3 text-xs text-text-secondary border-t border-border pt-4">
                 <li className="flex items-center space-x-2">
                   <ShieldCheck className="h-4 w-4 text-success shrink-0" />
-                  <span><strong>80% Revenue Share</strong> on stream gifts, tips & subscriptions</span>
+                  <span><strong>2M:</strong> Daily coin limit</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <ShieldCheck className="h-4 w-4 text-success shrink-0" />
-                  <span><strong>Guaranteed Targets:</strong> Clear daily/monthly live stream hour goals</span>
+                  <span><strong>40h:</strong> Monthly live goal</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <ShieldCheck className="h-4 w-4 text-success shrink-0" />
-                  <span><strong>10% Referral Bonus:</strong> Earn recurring income by inviting fellow creators</span>
+                  <span><strong>10%:</strong> Personal purchase discount</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <ShieldCheck className="h-4 w-4 text-success shrink-0" />
+                  <span><strong>$100:</strong> Payout threshold</span>
                 </li>
               </ul>
             </div>
@@ -122,28 +126,32 @@ export default function HomePage() {
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-soft text-brand font-bold">
                   <Building2 className="h-6 w-6" />
                 </div>
-                <span className="rounded-full bg-brand-soft px-3 py-1 text-xs font-bold text-brand">20% Agency Split</span>
+                <span className="rounded-full bg-brand-soft px-3 py-1 text-xs font-bold text-brand">Agency Program</span>
               </div>
 
               <div>
                 <h3 className="text-2xl font-bold text-text-primary">Agency Partnership Program</h3>
                 <p className="text-xs text-text-secondary mt-1 leading-relaxed">
-                  Enterprise portal for talent management agencies to recruit creators, monitor rosters, and collect monthly wire splits.
+                  Enterprise portal for talent management agencies to recruit creators, monitor rosters, and manage corporate settlements.
                 </p>
               </div>
 
               <ul className="space-y-3 text-xs text-text-secondary border-t border-border pt-4">
                 <li className="flex items-center space-x-2">
                   <ShieldCheck className="h-4 w-4 text-success shrink-0" />
-                  <span><strong>20% Agency Split</strong> on gross stream earnings of your roster</span>
+                  <span><strong>20M:</strong> Daily coin limit</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <ShieldCheck className="h-4 w-4 text-success shrink-0" />
-                  <span><strong>Digital Invitation Suite:</strong> Invite creators with 1-click consent binding</span>
+                  <span><strong>20%:</strong> Agency purchase discount</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <ShieldCheck className="h-4 w-4 text-success shrink-0" />
-                  <span><strong>Corporate Settlements:</strong> Automated monthly bank wire disbursements</span>
+                  <span><strong>11–18%:</strong> Transfer discount</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <ShieldCheck className="h-4 w-4 text-success shrink-0" />
+                  <span><strong>$5,000:</strong> Security deposit</span>
                 </li>
               </ul>
             </div>
@@ -166,19 +174,9 @@ export default function HomePage() {
         </div>
       </Container>
 
-      {/* 4. Unified Calculator Teaser */}
-      <section className="bg-surface-muted/60 py-12 border-y border-border">
-        <Container>
-          <div className="text-center max-w-2xl mx-auto space-y-2 mb-8">
-            <h2 className="text-3xl font-bold text-text-primary">Interactive Income Calculator</h2>
-            <p className="text-sm text-text-secondary">Toggle between Creator earnings and Agency commission projections.</p>
-          </div>
+      {/* 4. PK Battles, Gifts and Creator Tools Showcase */}
+      <PkBattlesGallery />
 
-          <div className="max-w-4xl mx-auto">
-            <HomeCalculatorTabs />
-          </div>
-        </Container>
-      </section>
 
       {/* 5. Coin Commerce Teaser */}
       <Container>
@@ -210,14 +208,14 @@ export default function HomePage() {
             </div>
 
             <div className="lg:col-span-5 rounded-2xl bg-surface p-6 border border-border space-y-3 shadow-sm text-center">
-              <span className="text-xs font-bold text-text-muted uppercase">Sample Package Preview</span>
-              <p className="text-2xl font-bold text-text-primary">500 Coins + 50 Bonus</p>
+              <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">Sample Package Preview</span>
+              <p className="text-2xl font-bold text-text-primary">1,000 Coins Package</p>
               <div className="flex justify-center items-baseline space-x-2">
-                <span className="text-xs text-text-muted line-through">$8.99</span>
-                <span className="text-xl font-extrabold text-brand">$8.09 USD</span>
+                <span className="text-xs text-text-muted line-through font-normal">$13.33</span>
+                <span className="text-xl font-bold text-brand">$12.00 USD</span>
               </div>
-              <span className="inline-block text-[11px] font-bold text-success bg-success-soft px-2 py-0.5 rounded">
-                10% Public Website Offer Applied
+              <span className="inline-block text-[11px] font-semibold text-success bg-success-soft px-2.5 py-0.5 rounded">
+                10% Public Website Discount Applied
               </span>
             </div>
           </div>

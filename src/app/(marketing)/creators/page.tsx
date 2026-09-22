@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Video, ShieldCheck, DollarSign, Users, Award, ArrowRight, ChevronDown, Check, Flame } from "lucide-react";
+import { Video, ShieldCheck, DollarSign, Coins, Clock, ArrowRight, ChevronDown, Flame, Percent } from "lucide-react";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { MarketingCtaButton } from "@/components/marketing/marketing-cta-button";
 
 export default function CreatorsPage() {
@@ -21,19 +21,19 @@ export default function CreatorsPage() {
   const faqs = [
     {
       q: "Who can apply for the Frenzone Creator Program?",
-      a: "Creators who are 18+ with active social media channels (Instagram, TikTok, YouTube) and a commitment to high-definition daily live streaming.",
+      a: "Creators who are 18+ with active social media channels and a commitment to high-definition daily live streaming.",
     },
     {
-      q: "How are stream earnings and gift payouts calculated?",
-      a: "Virtual gifts sent by live viewers convert to Coins. Frenzone creators receive an 80% revenue split, settled monthly via PayPal or Bank Transfer.",
+      q: "What is the monthly live streaming requirement?",
+      a: "Approved creators commit to a 40-hour monthly live streaming goal to maintain active creator benefits and verified status.",
     },
     {
-      q: "What are the daily streaming compliance requirements?",
-      a: "Approved creators commit to a minimum 15 streaming days per month, with at least 2 hours per session to maintain active creator status.",
+      q: "What are the coin limits and discounts for verified creators?",
+      a: "Creators enjoy a 2M daily coin limit along with a 10% personal purchase discount on coin packages in the store.",
     },
     {
-      q: "How does the 10% Creator Referral Program work?",
-      a: "When you refer fellow creators with your unique link, you receive a 10% recurring bonus based on their confirmed stream earnings.",
+      q: "What is the minimum payout threshold and schedule?",
+      a: "The minimum payout threshold is $100. Payouts are settled reliably once your balance meets or exceeds $100 USD.",
     },
   ];
 
@@ -41,35 +41,71 @@ export default function CreatorsPage() {
     <div className="space-y-16 py-12">
       {/* Hero Section */}
       <Container>
-        <div className="text-center max-w-3xl mx-auto space-y-6">
-          <span className="inline-flex items-center space-x-2 rounded-full bg-gradient-to-r from-violet-50 via-indigo-50 to-pink-50 px-4 py-1.5 text-xs font-bold text-brand border border-brand/20">
-            <Flame className="h-4 w-4 text-brand fill-brand" />
-            <span className="bg-gradient-to-r from-violet-700 via-indigo-700 to-pink-600 bg-clip-text text-transparent">Frenzone Creator Program 2026</span>
-          </span>
+        <div className="grid gap-12 lg:grid-cols-12 items-center">
+          <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+            <span className="inline-flex items-center space-x-2 rounded-full bg-brand-soft px-4 py-1.5 text-xs font-extrabold text-brand border border-brand/20">
+              <Flame className="h-4 w-4 text-brand fill-brand" />
+              <span>CREATOR PROGRAM</span>
+            </span>
 
-          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl text-text-primary">
-            Turn Your Passion Into a <span className="text-brand">Live Streaming Career</span>
-          </h1>
+            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl text-text-primary">
+              Turn live performance into a <span className="text-brand">sustainable career.</span>
+            </h1>
 
-          <p className="text-lg text-text-secondary leading-relaxed">
-            Join thousands of top creators on Frenzone. Enjoy guaranteed stream targets, virtual gift monetization, and a 10% referral bonus network.
-          </p>
+            <p className="text-lg text-text-secondary leading-relaxed max-w-2xl mx-auto lg:mx-0">
+              Track goals, earnings, compliance, and payouts in one unified workspace. Built specifically for serious live streamers.
+            </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-            <MarketingCtaButton
-              type="creator"
-              defaultText="Apply as Creator Now"
-              defaultHref="/creator-apply"
-              className="inline-flex items-center justify-center h-12 px-6 rounded-xl font-bold text-white bg-brand hover:bg-brand-hover active:bg-brand-active shadow-sm text-base space-x-2"
-            />
-            <Link href="#calculator">
-              <Button size="lg" variant="secondary">
-                Calculate Earnings
-              </Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+              <MarketingCtaButton
+                type="creator"
+                defaultText="Apply now"
+                defaultHref="/creator-apply"
+                className="inline-flex items-center justify-center h-12 px-6 rounded-xl font-bold text-white bg-brand hover:bg-brand-hover active:bg-brand-active shadow-sm text-base space-x-2"
+              />
+              <Link href="#calculator">
+                <Button size="lg" variant="secondary">
+                  Calculate Earnings
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          <div className="lg:col-span-5">
+            <div className="relative overflow-hidden rounded-3xl border border-brand/20 shadow-elevated bg-slate-950">
+              <img
+                src="/assets/pk-battle-cover.png"
+                alt="Frenzone Creator Program"
+                className="w-full h-80 sm:h-96 object-cover"
+              />
+            </div>
           </div>
         </div>
       </Container>
+
+      {/* Official Creator Metrics Bar (Exact Specifications) */}
+      <section className="bg-surface border-y border-border py-10 shadow-sm">
+        <Container>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div className="space-y-1">
+              <p className="text-3xl sm:text-4xl font-black text-brand">2M</p>
+              <p className="text-xs font-semibold text-text-muted uppercase tracking-wider">daily coin limit</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-3xl sm:text-4xl font-black text-brand">40h</p>
+              <p className="text-xs font-semibold text-text-muted uppercase tracking-wider">monthly live goal</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-3xl sm:text-4xl font-black text-brand">10%</p>
+              <p className="text-xs font-semibold text-text-muted uppercase tracking-wider">personal purchase discount</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-3xl sm:text-4xl font-black text-brand">$100</p>
+              <p className="text-xs font-semibold text-text-muted uppercase tracking-wider">payout threshold</p>
+            </div>
+          </div>
+        </Container>
+      </section>
 
       {/* Interactive Creator Earnings Estimator */}
       <section id="calculator" className="bg-surface-muted/60 py-12 border-y border-border">
@@ -147,34 +183,44 @@ export default function CreatorsPage() {
           <p className="text-sm text-text-secondary">Designed from the ground up for high-performing video creators.</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-4">
+          <Card className="p-6 space-y-3">
+            <div className="h-10 w-10 rounded-lg bg-brand-soft text-brand flex items-center justify-center">
+              <Clock className="h-5 w-5" />
+            </div>
+            <h3 className="font-bold text-lg text-text-primary">40h Monthly Goal</h3>
+            <p className="text-xs text-text-secondary leading-relaxed">
+              Clear, achievable 40-hour monthly live streaming target with transparent real-time tracking.
+            </p>
+          </Card>
+
           <Card className="p-6 space-y-3">
             <div className="h-10 w-10 rounded-lg bg-brand-soft text-brand flex items-center justify-center">
               <DollarSign className="h-5 w-5" />
             </div>
-            <h3 className="font-bold text-lg text-text-primary">80% Creator Split</h3>
+            <h3 className="font-bold text-lg text-text-primary">$100 Payout Threshold</h3>
             <p className="text-xs text-text-secondary leading-relaxed">
-              Industry-leading revenue share on virtual stream gifts, paid tips, and club subscriptions.
+              Fast, dependable settlements starting at a low $100 threshold directly to your verified payout method.
             </p>
           </Card>
 
           <Card className="p-6 space-y-3">
             <div className="h-10 w-10 rounded-lg bg-brand-soft text-brand flex items-center justify-center">
-              <Users className="h-5 w-5" />
+              <Coins className="h-5 w-5" />
             </div>
-            <h3 className="font-bold text-lg text-text-primary">10% Referral Bonus</h3>
+            <h3 className="font-bold text-lg text-text-primary">2M Daily Coin Limit</h3>
             <p className="text-xs text-text-secondary leading-relaxed">
-              Earn recurring income by inviting talented creators to join the Frenzone network.
+              High daily coin transaction ceilings empowering peak-event support and stream monetization.
             </p>
           </Card>
 
           <Card className="p-6 space-y-3">
             <div className="h-10 w-10 rounded-lg bg-brand-soft text-brand flex items-center justify-center">
-              <ShieldCheck className="h-5 w-5" />
+              <Percent className="h-5 w-5" />
             </div>
-            <h3 className="font-bold text-lg text-text-primary">Clear Compliance Goals</h3>
+            <h3 className="font-bold text-lg text-text-primary">10% Purchase Discount</h3>
             <p className="text-xs text-text-secondary leading-relaxed">
-              Transparent monthly targets and real-time portal tracking with zero hidden fees.
+              Exclusive 10% discount on personal coin purchases for all verified Frenzone creators.
             </p>
           </Card>
         </div>

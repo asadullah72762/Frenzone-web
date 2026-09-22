@@ -13,6 +13,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: { default: "Frenzone | Creator & Agency", template: "%s | Frenzone" },
   description: "Frenzone Creator and Agency platform.",
+  icons: {
+    icon: "/assets/frenzone-mark.png",
+    shortcut: "/assets/frenzone-mark.png",
+    apple: "/assets/frenzone-mark.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

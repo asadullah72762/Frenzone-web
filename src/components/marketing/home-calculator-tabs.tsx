@@ -110,7 +110,7 @@ export function HomeCalculatorTabs() {
               ${creatorEstMonthly.toLocaleString()} <span className="text-sm font-semibold">USD / mo</span>
             </p>
             <p className="text-xs text-brand-soft/80">
-              Based on 80% creator gift split & average viewer retention.
+              Based on virtual stream gifts & average viewer retention.
             </p>
             {isCreatorVerified ? (
               <Link href="/creator" className="block pt-2">
@@ -163,7 +163,7 @@ export function HomeCalculatorTabs() {
           </div>
 
           <div className="rounded-2xl bg-gradient-to-br from-brand to-brand-hover p-6 text-white text-center space-y-3 shadow-elevated">
-            <span className="text-xs font-bold uppercase tracking-wider text-brand-soft">Est. Agency Commission (20%)</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-brand-soft">Est. Monthly Agency Commission</span>
             <p className="text-4xl font-black">
               ${agencyEstCommission.toLocaleString()} <span className="text-sm font-semibold">USD / mo</span>
             </p>
