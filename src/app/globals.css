@@ -43,7 +43,12 @@ html {
 body {
   background: var(--color-background);
   color: var(--color-text-primary);
-  font-family: var(--font-inter), Arial, sans-serif;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, var(--font-inter), Inter, sans-serif;
+  letter-spacing: -0.011em;
+}
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.055em;
+  font-weight: inherit;
 }
 input,
 select,

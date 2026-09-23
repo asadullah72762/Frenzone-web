@@ -128,8 +128,8 @@ export function LoginForm() {
         <button
           type="button"
           onClick={() => setTargetPortal("CREATOR")}
-          className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${
-            targetPortal === "CREATOR" ? "bg-text-primary text-white" : "text-text-muted hover:text-text-primary"
+          className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors cursor-pointer ${
+            targetPortal === "CREATOR" ? "bg-brand text-white shadow-xs" : "text-text-muted hover:text-text-primary"
           }`}
         >
           <Video className="h-3.5 w-3.5" /> Creator
@@ -137,8 +137,8 @@ export function LoginForm() {
         <button
           type="button"
           onClick={() => setTargetPortal("AGENCY")}
-          className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors ${
-            targetPortal === "AGENCY" ? "bg-text-primary text-white" : "text-text-muted hover:text-text-primary"
+          className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-colors cursor-pointer ${
+            targetPortal === "AGENCY" ? "bg-brand text-white shadow-xs" : "text-text-muted hover:text-text-primary"
           }`}
         >
           <Building2 className="h-3.5 w-3.5" /> Agency

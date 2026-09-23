@@ -12,6 +12,7 @@ export type CreatorApplicationInput = {
   phone: string;
   country: string;
   language: string;
+  dob: string;
   isAdult: boolean;
   instagram?: string;
   tiktok?: string;
@@ -42,4 +43,5 @@ export type AgencyApplicationInput = {
   invoicingInformation: string;
   acceptTerms: boolean;
   acceptAgreement: boolean;
+  supportingDocuments?: { name: string; url: string }[];
 };

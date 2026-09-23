@@ -3,6 +3,7 @@ import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect, type InputHTMLAttributes, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
+import { LogOut, LogIn, RefreshCw } from "lucide-react";
 import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
 import { SupportingDocumentUpload } from "./supporting-document-upload";
@@ -24,10 +25,24 @@ export function AgencyApplicationForm() {
   });
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const [documents, setDocuments] = useState<{ name: string; url: string }[]>([]);
   const [existingSession, setExistingSession] = useState<any>(null);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   useEffect(() => {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("frenzone_token") || localStorage.getItem("token")
+        : null;
+
+    if (!token) {
+      setIsAuthenticated(false);
+      setIsLoadingSession(false);
+      return;
+    }
+
+    setIsAuthenticated(true);
     authService
       .getSession()
       .then((session) => {
@@ -46,7 +61,10 @@ export function AgencyApplicationForm() {
   const submit = async (data: AgencyApplicationInput) => {
     setServerError(undefined);
     try {
-      await agencyApplicationService.submit(data);
+      await agencyApplicationService.submit({
+        ...data,
+        supportingDocuments: documents,
+      });
       setIsSuccess(true);
     } catch (err: any) {
       setServerError(
@@ -54,6 +72,32 @@ export function AgencyApplicationForm() {
       );
     }
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="rounded-2xl border border-brand/20 bg-gradient-to-br from-violet-50/50 via-surface to-pink-50/50 p-8 text-center shadow-sm">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/10 text-brand mb-4">
+          <LogIn className="h-7 w-7" />
+        </div>
+        <h3 className="text-xl font-bold text-text-primary">Sign In Required</h3>
+        <p className="mt-2 text-sm text-text-secondary max-w-md mx-auto">
+          Agency partnership applications connect directly to your verified Frenzone account. Please sign in or create an account to submit an application.
+        </p>
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Link href="/login?portal=AGENCY" className="w-full sm:w-auto">
+            <Button variant="primary" className="w-full sm:w-auto" icon={<LogIn className="h-4 w-4" />}>
+              Sign In to Apply
+            </Button>
+          </Link>
+          <Link href="/signup?portal=AGENCY" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto">
+              Create an Account
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (existingSession?.isAgencyVerified || existingSession?.agencyMembership?.agency_id?.status === "approved") {
     return (
@@ -169,7 +213,7 @@ export function AgencyApplicationForm() {
           {...register("socialLinks")}
         />
       </Section>
-      <SupportingDocumentUpload />
+      <SupportingDocumentUpload documents={documents} onChange={setDocuments} />
       <Section title="Contact and operations">
         <FormField
           id="contactName"
@@ -241,12 +285,6 @@ export function AgencyApplicationForm() {
         <Button disabled={isSubmitting} type="submit" variant="primary" className="w-full sm:w-auto">
           {isSubmitting ? "Submitting…" : "Submit application"}
         </Button>
-        <Link
-          href="/agency"
-          className="w-full sm:w-auto text-center px-4 py-2.5 text-xs font-semibold text-text-secondary hover:text-text-primary border border-border rounded-xl hover:bg-surface-muted transition-colors"
-        >
-          Skip for now, explore workspace →
-        </Link>
       </div>
     </form>
   );

@@ -51,7 +51,7 @@ export const creatorApplicationService = {
       demographics: {
         country: input.country || "United States",
         language: input.language || "English",
-        dob: "2000-01-01", // Default adult DOB fallback if not provided
+        dob: input.dob || "2000-01-01",
       },
       content_profile: {
         category: (input.category || "other").toLowerCase(),

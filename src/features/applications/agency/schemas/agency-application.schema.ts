@@ -18,4 +18,12 @@ export const agencyApplicationSchema = z.object({
   invoicingInformation: z.string().trim().min(2, "Enter invoicing information."),
   acceptTerms: requiredAgreement,
   acceptAgreement: requiredAgreement,
+  supportingDocuments: z
+    .array(
+      z.object({
+        name: z.string(),
+        url: z.string(),
+      })
+    )
+    .optional(),
 });

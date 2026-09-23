@@ -6,24 +6,52 @@ import { Radio, Building2, Languages, ChevronDown, Menu, X } from "lucide-react"
 import { Container } from "@/components/layout/container";
 import { authService } from "@/features/auth/services/auth.service";
 
-const languages = [
-  { code: "en", name: "English" },
-  { code: "ar", name: "العربية" },
-  { code: "fr", name: "Français" },
-  { code: "es", name: "Español" },
-  { code: "pt", name: "Português" },
-  { code: "tr", name: "Türkçe" },
-  { code: "ru", name: "Русский" },
-  { code: "ur", name: "اردو" },
-  { code: "hi", name: "हिन्दी" },
-  { code: "fa", name: "فارسی" },
+const LANGUAGES = [
+  { code: "en", label: "English" },
+  { code: "ar", label: "العربية" },
+  { code: "fr", label: "Français" },
+  { code: "es", label: "Español" },
+  { code: "pt", label: "Português" },
+  { code: "tr", label: "Türkçe" },
+  { code: "ru", label: "Русский" },
+  { code: "ur", label: "اردو" },
+  { code: "hi", label: "हिन्दी" },
+  { code: "he", label: "עברית" },
+  { code: "fa", label: "فارسی" },
 ];
+
+const RTL_LANGUAGES = ["ar", "ur", "he", "fa"];
 
 export function MarketingHeader() {
   const [session, setSession] = useState<any>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isLangOpen, setIsLangOpen] = useState(false);
-  const [selectedLang, setSelectedLang] = useState("English");
+  const [language, setLanguage] = useState("English");
+
+  const applyLanguage = (langLabel: string) => {
+    const found = LANGUAGES.find((l) => l.label === langLabel) || LANGUAGES[0];
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = found.code;
+      document.documentElement.dir = RTL_LANGUAGES.includes(found.code) ? "rtl" : "ltr";
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("frenzone_lang");
+      if (saved) {
+        setLanguage(saved);
+        applyLanguage(saved);
+      }
+    }
+  }, []);
+
+  const handleLangChange = (val: string) => {
+    setLanguage(val);
+    applyLanguage(val);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("frenzone_lang", val);
+    }
+  };
 
   useEffect(() => {
     authService
@@ -41,16 +69,6 @@ export function MarketingHeader() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const changeLanguage = (langCode: string, langName: string) => {
-    setSelectedLang(langName);
-    setIsLangOpen(false);
-    
-    // Set Google Translate cookie
-    const targetLang = langCode || "en";
-    document.cookie = `googtrans=/en/${targetLang}`;
-    window.location.reload(); // Reload to apply translation across the page
-  };
-
   const user = session?.user;
   const isCreatorVerified = Boolean(user?.isCreatorVerified || user?.isCreator || user?.creatorStatus === "approved");
   const isAgencyVerified = Boolean(user?.isAgencyVerified || user?.agencyMembership?.agency_id?.status === "approved");
@@ -60,20 +78,15 @@ export function MarketingHeader() {
   const PortalIcon = isAgencyVerified ? Building2 : Radio;
 
   return (
-    <header className="bg-surface sticky top-0 z-40 border-b-2 border-text-primary">
+    <header className="bg-surface/95 backdrop-blur-md sticky top-0 z-40 border-b border-border">
       <Container className="flex h-20 items-center justify-between gap-4">
         {/* Logo mark */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0" onClick={() => setMenuOpen(false)}>
-          <svg viewBox="0 0 40 40" className="h-8 w-8 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 2a18 18 0 1 0 0 36" stroke="var(--color-brand)" strokeWidth="4.5" strokeLinecap="round" />
-            <path d="M20 10a10 10 0 1 0 0 20" stroke="var(--color-brand)" strokeWidth="4.5" strokeLinecap="round" />
-          </svg>
-          <span className="leading-none">
-            <span className="block text-xl font-black tracking-tight text-text-primary">
-              FREN <span className="text-brand">ZONE</span>
-            </span>
-            <span className="block text-[10px] font-extrabold tracking-[0.25em] text-text-primary">LIVE</span>
-          </span>
+          <img
+            src="/assets/frenzone-logo.png"
+            alt="Frenzone Live"
+            className="h-10 w-auto object-contain"
+          />
         </Link>
 
         {/* Primary nav — desktop only */}
@@ -86,32 +99,21 @@ export function MarketingHeader() {
 
         {/* Right cluster — desktop only */}
         <div className="hidden lg:flex items-center gap-3 shrink-0">
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setIsLangOpen(!isLangOpen)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold text-text-primary hover:bg-surface-muted transition-colors"
+          <label className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-semibold text-text-primary hover:bg-surface-muted transition-colors cursor-pointer">
+            <Languages className="h-4 w-4 text-text-primary shrink-0" />
+            <select
+              aria-label="Language"
+              value={language}
+              onChange={(e) => handleLangChange(e.target.value)}
+              className="bg-transparent text-sm font-semibold text-text-primary cursor-pointer border-none outline-none focus:outline-none focus:ring-0 pr-1"
             >
-              <Languages className="h-4 w-4 text-text-primary" />
-              {selectedLang}
-              <ChevronDown className={`h-3.5 w-3.5 text-text-muted transition-transform ${isLangOpen ? "rotate-180" : ""}`} />
-            </button>
-
-            {isLangOpen && (
-              <div className="absolute right-0 mt-2 w-40 bg-surface border border-border rounded-xl shadow-lg py-1 z-50 max-h-60 overflow-y-auto">
-                {languages.map((lang) => (
-                  <button
-                    key={lang.code}
-                    type="button"
-                    onClick={() => changeLanguage(lang.code, lang.name)}
-                    className="w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-surface-muted transition-colors"
-                  >
-                    {lang.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+              {LANGUAGES.map((l) => (
+                <option key={l.code} value={l.label}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+          </label>
 
           <Link
             href={portalHref}
@@ -158,31 +160,22 @@ export function MarketingHeader() {
             <Link href="/agencies" onClick={() => setMenuOpen(false)} className="py-3 text-base font-bold text-text-primary border-b border-border-subtle">Agencies</Link>
             <Link href="/coins" onClick={() => setMenuOpen(false)} className="py-3 text-base font-bold text-text-primary border-b border-border-subtle">Buy coins</Link>
 
-            <div className="flex items-center gap-3 mt-4 relative">
-              <button
-                type="button"
-                onClick={() => setIsLangOpen(!isLangOpen)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-2 text-sm font-semibold text-text-primary"
-              >
-                <Languages className="h-4 w-4" />
-                {selectedLang}
-                <ChevronDown className={`h-3.5 w-3.5 text-text-muted transition-transform ${isLangOpen ? "rotate-180" : ""}`} />
-              </button>
-
-              {isLangOpen && (
-                <div className="absolute left-0 top-full mt-2 w-40 bg-surface border border-border rounded-xl shadow-lg py-1 z-50 max-h-60 overflow-y-auto">
-                  {languages.map((lang) => (
-                    <button
-                      key={lang.code}
-                      type="button"
-                      onClick={() => changeLanguage(lang.code, lang.name)}
-                      className="w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-surface-muted transition-colors"
-                    >
-                      {lang.name}
-                    </button>
+            <div className="flex items-center gap-3 mt-4">
+              <label className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-2 text-sm font-semibold text-text-primary">
+                <Languages className="h-4 w-4 text-text-primary shrink-0" />
+                <select
+                  aria-label="Language"
+                  value={language}
+                  onChange={(e) => handleLangChange(e.target.value)}
+                  className="bg-transparent text-sm font-semibold text-text-primary cursor-pointer border-none outline-none focus:outline-none focus:ring-0"
+                >
+                  {LANGUAGES.map((l) => (
+                    <option key={l.code} value={l.label}>
+                      {l.label}
+                    </option>
                   ))}
-                </div>
-              )}
+                </select>
+              </label>
             </div>
 
             <Link

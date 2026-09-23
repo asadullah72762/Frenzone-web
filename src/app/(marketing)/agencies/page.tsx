@@ -37,7 +37,7 @@ export default function AgenciesPage() {
         <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-text-muted">Agency program</p>
-            <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl font-extrabold text-text-primary leading-[1.08]">
+            <h1 className="mt-4 text-[clamp(44px,6vw,72px)] font-normal tracking-[-0.055em] text-text-primary leading-[0.98]">
               Build a managed creator network.
             </h1>
             <p className="mt-5 max-w-lg text-lg text-text-secondary leading-relaxed">

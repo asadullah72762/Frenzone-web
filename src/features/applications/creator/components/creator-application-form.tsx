@@ -35,6 +35,7 @@ export function CreatorApplicationForm() {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<CreatorApplicationInput>({
     resolver: zodResolver(creatorApplicationSchema),
@@ -43,6 +44,7 @@ export function CreatorApplicationForm() {
       acceptTerms: false,
       acceptPrivacy: false,
       acceptAgreement: false,
+      dob: "",
       country: "United States",
       language: "English",
       category: "lifestyle",
@@ -50,6 +52,14 @@ export function CreatorApplicationForm() {
       agencyStatus: "independent",
     },
   });
+
+  const [isAdult, acceptTerms, acceptPrivacy, acceptAgreement] = watch([
+    "isAdult",
+    "acceptTerms",
+    "acceptPrivacy",
+    "acceptAgreement",
+  ]);
+  const allAgreementsChecked = Boolean(isAdult && acceptTerms && acceptPrivacy && acceptAgreement);
 
   const checkStatus = async () => {
     const token =
@@ -100,6 +110,13 @@ export function CreatorApplicationForm() {
         }
         if (app.contact_info?.email) setValue("email", app.contact_info.email);
         if (app.contact_info?.phone) setValue("phone", app.contact_info.phone);
+        if (app.demographics?.dob) {
+          const dobValue =
+            typeof app.demographics.dob === "string"
+              ? app.demographics.dob.split("T")[0]
+              : new Date(app.demographics.dob).toISOString().split("T")[0];
+          setValue("dob", dobValue);
+        }
         if (app.demographics?.country) setValue("country", app.demographics.country);
         if (app.demographics?.language) setValue("language", app.demographics.language);
         if (app.content_profile?.category) setValue("category", app.content_profile.category);
@@ -298,17 +315,10 @@ export function CreatorApplicationForm() {
           </div>
         ) : null}
 
-        <div className="mt-6 pt-4 border-t border-amber-200/60 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-text-secondary">
-            Want to explore your creator workspace while waiting for review?
+        <div className="mt-6 pt-4 border-t border-amber-200/60 text-xs text-text-secondary">
+          <p>
+            Your application is currently being evaluated by our compliance team. Once approved, your live streaming studio and creator hub will automatically unlock.
           </p>
-          <Link
-            href="/creator"
-            className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-brand bg-amber-100/70 hover:bg-amber-200/70 border border-amber-300/60 transition-colors"
-          >
-            <span>Skip for now, go to Creator Portal</span>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
         </div>
       </div>
     );
@@ -404,6 +414,13 @@ export function CreatorApplicationForm() {
             {...register("phone")}
           />
           <FormField
+            id="dob"
+            type="date"
+            label="Date of birth"
+            error={errors.dob?.message}
+            {...register("dob")}
+          />
+          <FormField
             id="country"
             label="Country of residence"
             error={errors.country?.message}
@@ -418,12 +435,27 @@ export function CreatorApplicationForm() {
         </FormSection>
 
         <FormSection title="Creator profile">
-          <FormField
-            id="category"
-            label="Content category"
-            error={errors.category?.message}
-            {...register("category")}
-          />
+          <div className="space-y-1.5 text-sm">
+            <label htmlFor="category" className="block text-xs font-semibold text-text-primary">
+              Content category
+            </label>
+            <select
+              id="category"
+              {...register("category")}
+              className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-text-primary shadow-xs transition-colors focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
+            >
+              <option value="lifestyle">Lifestyle & Vlogging</option>
+              <option value="gaming">Gaming & Esports</option>
+              <option value="music">Music & Performance</option>
+              <option value="fitness">Fitness & Health</option>
+              <option value="art">Art & Creative</option>
+              <option value="education">Education & Tech</option>
+              <option value="other">Other Entertainment</option>
+            </select>
+            {errors.category?.message ? (
+              <p className="text-xs text-red-500">{errors.category.message}</p>
+            ) : null}
+          </div>
           <FormField
             id="audienceSize"
             label="Estimated audience size"
@@ -494,7 +526,7 @@ export function CreatorApplicationForm() {
 
         <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
           <Button
-            disabled={isSubmitting}
+            disabled={isSubmitting || !allAgreementsChecked}
             type="submit"
             variant="primary"
             className="w-full sm:w-auto"
@@ -503,12 +535,11 @@ export function CreatorApplicationForm() {
           >
             {isSubmitting ? "Submitting Application…" : "Submit Creator Application"}
           </Button>
-          <Link
-            href="/creator"
-            className="w-full sm:w-auto text-center px-4 py-2.5 text-xs font-semibold text-text-secondary hover:text-text-primary border border-border rounded-xl hover:bg-surface-muted transition-colors"
-          >
-            Skip for now, explore workspace →
-          </Link>
+          {!allAgreementsChecked && (
+            <span className="text-xs text-text-muted">
+              Please check all 4 confirmations above to enable submission.
+            </span>
+          )}
         </div>
       </form>
     </div>

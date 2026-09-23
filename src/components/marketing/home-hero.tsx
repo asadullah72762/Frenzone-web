@@ -45,12 +45,9 @@ export function HomeHero() {
         {/* Left: copy */}
         <div>
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-text-muted">Frenzone live partner portal</p>
-          <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-text-primary leading-[1.05]">
-            Where creators
-            <br />
-            and agencies
-            <br />
-            <span className="text-brand">grow together.</span>
+          <h1 className="mt-4 text-[clamp(44px,6vw,72px)] font-normal tracking-[-0.055em] text-text-primary leading-[0.98]">
+            Where creators and agencies{" "}
+            <em className="text-brand not-italic">grow together.</em>
           </h1>
           <p className="mt-6 max-w-xl text-lg text-text-secondary leading-relaxed">
             A working portal for applications, earnings, compliance, referrals, coin purchasing, transfers and payout requests.

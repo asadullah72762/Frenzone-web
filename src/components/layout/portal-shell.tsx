@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import type { NavigationItem } from "@/config/navigation";
 import { Container } from "./container";
-import { LogOut, User, Building2, ChevronRight, ShieldAlert, RefreshCw, ArrowRight } from "lucide-react";
+import { LogOut, User, Building2, ChevronRight, ShieldAlert, RefreshCw, ArrowRight, Sparkles, Clock } from "lucide-react";
 import { authService } from "@/features/auth/services/auth.service";
 import { useAsyncData } from "@/lib/hooks/use-async-data";
 import { Button } from "@/components/ui/button";
@@ -54,18 +54,25 @@ export function PortalShell({ product, links, children }: Props) {
   const isAgencyUser = Boolean(
     session?.user?.isAgencyMember ||
     session?.user?.agencyId ||
-    session?.user?.role?.startsWith("AGENCY_")
+    session?.user?.role?.startsWith("AGENCY_") ||
+    session?.user?.agencyStatus === "approved" ||
+    session?.user?.isAgencyVerified
   );
 
-  const isCreatorUser = Boolean(
-    session?.user?.isCreator ||
+  const isCreatorVerified = Boolean(
+    session?.user?.isCreatorVerified ||
     session?.user?.creatorStatus === "approved" ||
-    session?.user?.creatorStatus === "pending"
+    session?.user?.isCreator
   );
+
+  const isCreatorPending = Boolean(session?.user?.creatorStatus === "pending");
+  const isAgencyPending = Boolean(session?.user?.agencyStatus === "pending");
 
   // Role Access Enforcement Checks
-  const isBlockedFromAgency = product === "Agency" && session && !isAgencyUser;
-  const isBlockedFromCreator = product === "Creator" && session && isAgencyUser && !isCreatorUser;
+  const isBlockedFromAgency = product === "Agency" && session && !isAgencyUser && !isAgencyPending;
+  const isBlockedFromCreator = product === "Creator" && session && isAgencyUser && !isCreatorVerified && !isCreatorPending;
+  const isUnappliedCreator = product === "Creator" && session && !isCreatorVerified && !isCreatorPending && !isAgencyUser;
+  const isPendingCreatorBlocked = product === "Creator" && session && isCreatorPending && pathname !== "/creator/application";
 
   return (
     <div className="bg-surface-muted min-h-screen flex flex-col">
@@ -73,8 +80,12 @@ export function PortalShell({ product, links, children }: Props) {
       <header className="bg-surface/90 backdrop-blur-md sticky top-0 z-40 border-b border-border">
         <Container className="flex h-16 items-center justify-between">
           <div className="flex items-center space-x-3">
-            <Link href="/" className="text-brand font-black text-xl tracking-tight flex items-center space-x-2">
-              <span>Frenzone</span>
+            <Link href="/" className="flex items-center">
+              <img
+                src="/assets/frenzone-logo.png"
+                alt="Frenzone"
+                className="h-8 w-auto object-contain"
+              />
             </Link>
             <span className="text-border text-lg font-light">/</span>
             <span className="rounded-full bg-gradient-to-r from-violet-50 via-indigo-50 to-pink-50 px-3 py-1 text-xs font-extrabold text-brand border border-brand/20">
@@ -206,32 +217,24 @@ export function PortalShell({ product, links, children }: Props) {
                 <p className="text-xs text-text-secondary">Verifying workspace permissions...</p>
               </div>
             ) : isBlockedFromAgency ? (
-              /* Creator Account attempting to view Agency Workspace */
+              /* Creator Account or Guest attempting to view Agency Workspace without Agency Application */
               <div className="max-w-lg mx-auto mt-12 rounded-2xl border border-warning/30 bg-surface p-8 text-center space-y-4 shadow-sm">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-warning-soft text-warning">
                   <ShieldAlert className="h-7 w-7" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-text-primary">Agency Workspace Restricted</h2>
+                  <h2 className="text-xl font-bold text-text-primary">Agency Workspace Required</h2>
                   <p className="text-sm text-text-secondary mt-2">
-                    You are signed in as a <strong>Creator</strong> ({session?.user?.displayName}). Your account is not registered as an active Agency member.
+                    {session?.user?.displayName ? `Hello, ${session.user.displayName}. ` : ""}Your account is not registered as an approved Agency Partner on Frenzone.
                   </p>
                 </div>
                 <div className="pt-2 flex flex-col sm:flex-row gap-3">
-                  <Button variant="primary" className="flex-1" onClick={() => router.push("/creator")}>
-                    Go to Creator Portal
+                  <Button variant="primary" className="flex-1" onClick={() => router.push("/agency-apply")}>
+                    Apply as Agency
                   </Button>
-                  {session?.user?.isAgencyVerified ? (
-                    <Button variant="outline" className="flex-1" onClick={() => router.push("/agency")}>
-                      Open Agency Portal
-                    </Button>
-                  ) : session?.user?.agencyStatus === "pending" ? (
-                    <Button variant="outline" className="flex-1" onClick={() => router.push("/agency")}>
-                      Agency Application in Review
-                    </Button>
-                  ) : (
-                    <Button variant="outline" className="flex-1" onClick={() => router.push("/agency-apply")}>
-                      Apply as Agency
+                  {session?.user?.isCreatorVerified && (
+                    <Button variant="outline" className="flex-1" onClick={() => router.push("/creator")}>
+                      Open Creator Hub
                     </Button>
                   )}
                 </div>
@@ -252,19 +255,51 @@ export function PortalShell({ product, links, children }: Props) {
                   <Button variant="primary" className="flex-1" onClick={() => router.push("/agency")}>
                     Go to Agency Portal
                   </Button>
-                  {session?.user?.isCreatorVerified ? (
-                    <Button variant="outline" className="flex-1" onClick={() => router.push("/creator")}>
-                      Open Creator Hub
-                    </Button>
-                  ) : session?.user?.creatorStatus === "pending" ? (
-                    <Button variant="outline" className="flex-1" onClick={() => router.push("/creator/application")}>
-                      Creator Review in Progress
-                    </Button>
-                  ) : (
-                    <Button variant="outline" className="flex-1" onClick={() => router.push("/creator-apply")}>
-                      Apply for Creator Program
-                    </Button>
-                  )}
+                </div>
+              </div>
+            ) : isUnappliedCreator ? (
+              /* Unverified user attempting to view Creator Workspace without submitting application */
+              <div className="max-w-lg mx-auto mt-12 rounded-2xl border border-brand/20 bg-gradient-to-br from-violet-50/50 via-surface to-pink-50/50 p-8 text-center space-y-4 shadow-sm">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/10 text-brand">
+                  <Sparkles className="h-7 w-7" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-text-primary">Creator Onboarding Required</h2>
+                  <p className="text-sm text-text-secondary mt-2 leading-relaxed">
+                    Welcome, <strong>{session?.user?.displayName || "Creator"}</strong>! To unlock the Live Studio, stream broadcasts, and monetize your audience, please complete your creator application.
+                  </p>
+                </div>
+                <div className="pt-3 flex justify-center">
+                  <Button
+                    variant="primary"
+                    className="w-full sm:w-auto"
+                    onClick={() => router.push("/creator-apply")}
+                    icon={<ArrowRight className="h-4 w-4" />}
+                  >
+                    Complete Creator Application
+                  </Button>
+                </div>
+              </div>
+            ) : isPendingCreatorBlocked ? (
+              /* User has submitted application and it is pending review */
+              <div className="max-w-lg mx-auto mt-12 rounded-2xl border border-amber-200 bg-amber-50/50 p-8 text-center space-y-4 shadow-sm">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+                  <Clock className="h-7 w-7" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-text-primary">Application Under Review</h2>
+                  <p className="text-sm text-text-secondary mt-2 leading-relaxed">
+                    Your Creator application is currently pending review by our compliance team. Once approved, your live streaming studio and earnings features will activate automatically.
+                  </p>
+                </div>
+                <div className="pt-3 flex justify-center">
+                  <Button
+                    variant="primary"
+                    onClick={() => router.push("/creator/application")}
+                    icon={<ArrowRight className="h-4 w-4" />}
+                  >
+                    View Application Status
+                  </Button>
                 </div>
               </div>
             ) : (

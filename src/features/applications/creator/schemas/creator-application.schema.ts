@@ -8,6 +8,17 @@ export const creatorApplicationSchema = z.object({
   phone: z.string().trim().min(6, "Enter a valid phone number."),
   country: z.string().trim().min(2, "Select your country."),
   language: z.string().trim().min(2, "Enter your primary language."),
+  dob: z
+    .string()
+    .trim()
+    .min(1, "Enter your date of birth.")
+    .refine((val) => {
+      const date = new Date(val);
+      if (isNaN(date.getTime())) return false;
+      const ageDiff = Date.now() - date.getTime();
+      const age = Math.abs(new Date(ageDiff).getUTCFullYear() - 1970);
+      return age >= 18;
+    }, "You must be at least 18 years old to apply to the Creator Program."),
   isAdult: requiredAgreement,
   instagram: z.string().trim().optional(),
   tiktok: z.string().trim().optional(),

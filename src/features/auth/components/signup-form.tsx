@@ -129,11 +129,11 @@ export function SignupForm() {
           onClick={() => setAccountType("CREATOR")}
           className={`py-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
             accountType === "CREATOR"
-              ? "bg-surface text-text-primary shadow-xs font-bold"
+              ? "bg-brand text-white shadow-xs font-bold"
               : "text-text-muted hover:text-text-primary"
           }`}
         >
-          <Video className="h-3.5 w-3.5 text-brand" />
+          <Video className={`h-3.5 w-3.5 ${accountType === "CREATOR" ? "text-white" : "text-brand"}`} />
           <span>Creator</span>
         </button>
         <button
@@ -141,11 +141,11 @@ export function SignupForm() {
           onClick={() => setAccountType("AGENCY")}
           className={`py-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
             accountType === "AGENCY"
-              ? "bg-surface text-text-primary shadow-xs font-bold"
+              ? "bg-brand text-white shadow-xs font-bold"
               : "text-text-muted hover:text-text-primary"
           }`}
         >
-          <Building2 className="h-3.5 w-3.5 text-brand" />
+          <Building2 className={`h-3.5 w-3.5 ${accountType === "AGENCY" ? "text-white" : "text-brand"}`} />
           <span>Agency</span>
         </button>
       </div>

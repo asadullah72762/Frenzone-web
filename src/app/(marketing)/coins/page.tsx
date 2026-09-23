@@ -10,8 +10,8 @@ const PERSONAL_DAILY_CAP = 2000000;
 const AGENCY_DAILY_CAP = 20000000;
 const PERSONAL_DISCOUNT = 0.1;
 const AGENCY_DISCOUNT = 0.2;
-// Illustrative reference rate; final pricing is confirmed securely at checkout.
-const COIN_TO_USD = 0.01;
+// In-app store reference rate: 1,000 coins = $12.97 reference ($11.68 with 10% discount)
+const COIN_TO_USD = 0.012975;
 
 export default function CoinsPage() {
   const [tab, setTab] = useState<"PERSONAL" | "AGENCY">("PERSONAL");
@@ -54,7 +54,7 @@ export default function CoinsPage() {
     <Container className="py-16 md:py-20">
       <div className="max-w-2xl mx-auto text-center">
         <p className="text-sm font-bold uppercase tracking-[0.2em] text-text-muted">Coin purchase portal</p>
-        <h1 className="mt-3 text-4xl sm:text-5xl lg:text-6xl font-extrabold text-text-primary">Choose coins with one simple slider.</h1>
+        <h1 className="mt-3 text-[clamp(36px,5vw,58px)] font-normal tracking-[-0.055em] text-text-primary leading-[0.98]">Choose coins with one simple slider.</h1>
         <p className="mt-5 text-text-secondary leading-relaxed">
           Every Frenzone app user can sign in with the same app credentials and buy coins for the same account. Personal purchases get
           10% off up to 2M daily; approved Agency inventory purchases get 20% off up to 20M daily.
